@@ -1,0 +1,80 @@
+[
+  {
+  "name": "Sugar Camp",
+  "latitude": 45.7944,
+  "longitude": -89.3140,
+  "time":
+    {
+      "1000":
+        {
+          "Willow": 45,
+          "Aspen": 16,
+          "Maple": 150,
+          "Oak": 88
+           }
+      ,
+      "2000":
+        {
+          "Willow": 50,
+          "Aspen": 24,
+          "Maple": 120,
+          "Oak": 67
+           }
+      ,
+      "3000":
+        {
+          "Willow": 77,
+          "Aspen": 35,
+          "Maple": 122,
+          "Oak": 60
+           }
+      ,
+      "4000":
+        {
+          "Willow": 89,
+          "Aspen": 38,
+          "Maple": 100,
+          "Oak": 140
+           }
+    }
+},
+{
+"name": "Sugar Camp",
+"latitude": 45.7944,
+"longitude": -89.3140,
+"time":
+  {
+    "1000":
+      {
+        "Willow": 45,
+        "Aspen": 16,
+        "Maple": 150,
+        "Oak": 88
+         }
+    ,
+    "2000":
+      {
+        "Willow": 50,
+        "Aspen": 24,
+        "Maple": 120,
+        "Oak": 67
+         }
+    ,
+    "3000":
+      {
+        "Willow": 77,
+        "Aspen": 35,
+        "Maple": 122,
+        "Oak": 60
+         }
+    ,
+    "4000":
+      {
+        "Willow": 89,
+        "Aspen": 38,
+        "Maple": 100,
+        "Oak": 140
+         }
+  }
+}
+]

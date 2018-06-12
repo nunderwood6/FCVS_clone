@@ -1,0 +1,325 @@
+{
+   "type": "FeatureCollection",
+   "features": [
+      {
+         "type": "Feature",
+         "geometry": {
+            "type": "Point",
+            "coordinates": [
+               45,
+               -89
+            ]
+         },
+         "properties": {
+            "cartodb_id": 1,
+            "id": 1,
+            "idt": 1,
+            "times": 4,
+            "arr": 0,
+            "value": 10,
+            "category": "Hemlock",
+            "degrees": 360
+         }
+      },
+      {
+         "type": "Feature",
+         "geometry": {
+            "type": "Point",
+            "coordinates": [
+              45,
+              -89
+            ]
+         },
+         "properties": {
+            "cartodb_id": 2,
+            "id": 1,
+            "idt": 1,
+            "times": 4,
+            "arr": 0,
+            "value": 5,
+            "category": "Spruce",
+            "degrees": 90
+         }
+      },
+      {
+         "type": "Feature",
+         "geometry": {
+            "type": "Point",
+            "coordinates": [
+              45,
+              -89
+            ]
+         },
+         "properties": {
+            "cartodb_id": 3,
+            "id": 1,
+            "idt": 1,
+            "times": 4,
+            "arr": 0,
+            "value": 15,
+            "category": "Oak",
+            "degrees": 180
+         }
+      },
+      {
+         "type": "Feature",
+         "geometry": {
+            "type": "Point",
+            "coordinates": [
+              45,
+              -89
+            ]
+         },
+         "properties": {
+            "cartodb_id": 4,
+            "id": 1,
+            "idt": 1,
+            "times": 4,
+            "arr": 0,
+            "value": 20,
+            "category": "Maple",
+            "degrees": 270
+         }
+      },
+      {
+         "type": "Feature",
+         "geometry": {
+            "type": "Point",
+            "coordinates": [
+               43.3,
+               -89
+            ]
+         },
+         "properties": {
+            "cartodb_id": 5,
+            "id": 2,
+            "idt": 2,
+            "times": 4,
+            "arr": 0,
+            "value": 20,
+            "category": "Hemlock",
+            "degrees": 360
+         }
+      },
+      {
+         "type": "Feature",
+         "geometry": {
+            "type": "Point",
+            "coordinates": [
+              43.3,
+              -89
+            ]
+         },
+         "properties": {
+            "cartodb_id": 6,
+            "id": 2,
+            "idt": 2,
+            "times": 4,
+            "arr": 0,
+            "value": 5,
+            "category": "Spruce",
+            "degrees": 90
+         }
+      },
+      {
+         "type": "Feature",
+         "geometry": {
+            "type": "Point",
+            "coordinates": [
+              43.3,
+              -89
+            ]
+         },
+         "properties": {
+            "cartodb_id": 7,
+            "id": 2,
+            "idt": 2,
+            "times": 4,
+            "arr": 0,
+            "value": 10,
+            "category": "Oak",
+            "degrees": 180
+         }
+      },
+      {
+         "type": "Feature",
+         "geometry": {
+            "type": "Point",
+            "coordinates": [
+              43.3,
+              -89
+            ]
+         },
+         "properties": {
+            "cartodb_id": 8,
+            "id": 2,
+            "idt": 2,
+            "times": 4,
+            "arr": 0,
+            "value": 15,
+            "category": "Maple",
+            "degrees": 270
+         }
+      },
+      {
+         "type": "Feature",
+         "geometry": {
+            "type": "Point",
+            "coordinates": [
+               44.5,
+               -88
+            ]
+         },
+         "properties": {
+            "cartodb_id": 9,
+            "id": 3,
+            "idt": 3,
+            "times": 4,
+            "arr": 0,
+            "value": 5,
+            "category": "Hemlock",
+            "degrees": 360
+         }
+      },
+      {
+         "type": "Feature",
+         "geometry": {
+            "type": "Point",
+            "coordinates": [
+              44.5,
+              -88
+            ]
+         },
+         "properties": {
+            "cartodb_id": 10,
+            "id": 3,
+            "idt": 3,
+            "times": 4,
+            "arr": 0,
+            "value": 15,
+            "category": "Spruce",
+            "degrees": 90
+         }
+      },
+      {
+         "type": "Feature",
+         "geometry": {
+            "type": "Point",
+            "coordinates": [
+              44.5,
+              -88
+            ]
+         },
+         "properties": {
+            "cartodb_id": 11,
+            "id": 3,
+            "idt": 3,
+            "times": 4,
+            "arr": 0,
+            "value": 20,
+            "category": "Oak",
+            "degrees": 180
+         }
+      },
+      {
+         "type": "Feature",
+         "geometry": {
+            "type": "Point",
+            "coordinates": [
+              44.5,
+              -88
+            ]
+         },
+         "properties": {
+            "cartodb_id": 12,
+            "id": 3,
+            "idt": 3,
+            "times": 4,
+            "arr": 0,
+            "value": 10,
+            "category": "Maple",
+            "degrees": 270
+         }
+      },
+      {
+         "type": "Feature",
+         "geometry": {
+            "type": "Point",
+            "coordinates": [
+              45.79,
+              -89.4
+            ]
+         },
+         "properties": {
+            "cartodb_id": 13,
+            "id": 4,
+            "idt": 4,
+            "times": 4,
+            "arr": 0,
+            "value": 15,
+            "category": "Hemlock",
+            "degrees": 360
+         }
+      },
+      {
+         "type": "Feature",
+         "geometry": {
+            "type": "Point",
+            "coordinates": [
+               45.79,
+               -89.4
+            ]
+         },
+         "properties": {
+            "cartodb_id": 14,
+            "id": 4,
+            "idt": 4,
+            "times": 4,
+            "arr": 0,
+            "value": 20,
+            "category": "Spruce",
+            "degrees": 90
+         }
+      },
+      {
+         "type": "Feature",
+         "geometry": {
+            "type": "Point",
+            "coordinates": [
+              45.79,
+              -89.4
+            ]
+         },
+         "properties": {
+            "cartodb_id": 15,
+            "id": 4,
+            "idt": 4,
+            "times": 4,
+            "arr": 0,
+            "value": 10,
+            "category": "Oak",
+            "degrees": 180
+         }
+      },
+      {
+         "type": "Feature",
+         "geometry": {
+            "type": "Point",
+            "coordinates": [
+              45.79,
+              -89.4
+            ]
+         },
+         "properties": {
+            "cartodb_id": 16,
+            "id": 4,
+            "idt": 4,
+            "times": 4,
+            "arr": 0,
+            "value": 5,
+            "category": "Maple",
+            "degrees": 270
+         }
+      }
+   ]
+}
