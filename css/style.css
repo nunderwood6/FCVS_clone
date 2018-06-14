@@ -63,7 +63,8 @@ label{
 
 .control-buttons{
   display: flex;
-    justify-content: center;
+  justify-content: center;
+  flex-wrap: wrap;
 
 }
 
@@ -93,7 +94,7 @@ select{
   width:auto;
   position:fixed;
   right:135px;
-  top: 128px;
+  top: 188px;
   z-index: 3000;
 }
 #tax2 {
@@ -102,7 +103,7 @@ select{
   width:auto;
   position:fixed;
   right:135px;
-  top: 160px;
+  top: 210px;
   z-index: 3000;
 }
 #tax3 {
@@ -111,7 +112,7 @@ select{
   width:auto;
   position:fixed;
   right:135px;
-  top: 192px;
+  top: 232px;
   z-index: 3000;
 }
 #tax4 {
@@ -120,17 +121,15 @@ select{
   width:auto;
   position:fixed;
   right:135px;
-  top: 224px;
+  top: 254px;
   z-index: 3000;
 }
-
-
 
 #slider-vertical{
   z-index: 2000;
   position:fixed;
   right: 25px;
-  top: 280px;
+  top: 350px;
 }
 
 #slider-legend {
@@ -138,7 +137,7 @@ select{
   width: 100px;
   position: fixed;
   right: 60px;
-  top: 280px;
+  top: 350px;
   background-color:#e9e9e9;
   box-shadow: 0px 2px 4px 0px #a6a6a6;
   z-index: 2000;

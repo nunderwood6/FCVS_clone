@@ -97,6 +97,7 @@ $('#page').append(
     '<div id="viz-control" class="control-buttons">'+
     '<a href="#" id="petal"><img alt="Petal Plots" title="Petal Plots" class="control-icon" src="images/PetalPlotButton.png"></a>'+
     '<a href="#" id="bar"><img alt="Stacked Bar Charts" title="Stacked Bar Charts" class="control-icon" src="images/BarChartButton.png"></a>'+
+    '<a href="#" id="radar"><img alt="Radar Charts" title="Radar Charts" class="control-icon" src="images/Radar_Plot_Example.png"></a>'+
     '</div>'+
 
   '<div class="control-label" style="border-radius:0px;">Taxa</div>'+
@@ -150,6 +151,7 @@ taxonIDs = [ "Picea", "Quercus", "Betula", "Pinus" ]
 // adding event listeners to the buttons to invoke vizChange when clicked
 document.getElementById ("petal").addEventListener ("click", vizChange, false);
 document.getElementById ("bar").addEventListener ("click", vizChange, false);
+document.getElementById ("radar").addEventListener ("click", vizChange, false);
 changeActiveViz(activeViz);
 
 //code block creating temporal slider control. Number ov steps based on years.
@@ -176,6 +178,7 @@ $.ajax('Data/formattedData.json', {
     // calling function to organize data
     formattedData = response.data;
     createPetalPlots(formattedData, 1000);
+    console.log(formattedData);
   }
 });
 
@@ -621,6 +624,84 @@ function createBarCharts(data, time){
   };
 
 };
+////////////////////////////////////////////////////////////////////////////////
+console.log(formattedData);
+console.log(RadarChart);
+
+
+function createRadarCharts(formattedData,time) {
+
+///radar chart config
+var radarChartOptions = {
+  w: 50,
+  h: 50,
+  levels: 3,
+  ExtraWidthX: 200,
+  ExtraWidthY: 200,
+  radius: 1,
+  opacityArea: .5,
+  color: "#31A148"
+};
+
+///////////convert formattedData to radar data.(array within array) Specific to simple radar here
+var formatRadar = function(site) {
+  var age = site.time[activeYear];
+
+  var radarData = [];
+  var radarPoly = [];
+  var maxVal = 0;
+  var empty = false;
+
+
+  for(var taxa of taxonIDs) {
+    if(age["totalValue"] == 0){
+    var val = 0;
+    var empty = true;
+    } else{
+    var val = age[taxa]/age["totalValue"];
+    }
+
+    empty += val;
+    maxVal = Math.max(maxVal, val);
+    radarPoly.push({axis: taxa, value: val});
+  }
+  radarData.push(radarPoly);
+  radarChartOptions.maxValue = maxVal+ maxVal*.25;
+
+  if(empty == true){
+    return "empty";
+  }
+  else{
+    return radarData;
+  }
+};
+/////////////////////////////////////////////////////////////////
+
+///create leaflet div marker for each site, append svg to each
+  for(site of formattedData){
+
+      //get site lat, long, name
+      var lat = site["latitude"],
+          long = site["longitude"],
+          name = site["name"].replace(/ /g, "").replace("'", "");
+
+      //create divIcon with site name id, add to map
+      var siteIcon = L.divIcon({className: "div-icon", html: `<div id=${name}> </div>`});
+      L.marker([lat, long], {icon: siteIcon}).addTo(map);
+
+      ////convert to radar data format, draw radar chart svg
+      var d = formatRadar(site);
+      console.log("Ran");
+      console.log(d);
+      ///Pass in: id of target div, data in radar format, options for chart
+      if(d != "empty"){
+        RadarChart.draw(`#${name}`, d, radarChartOptions);
+      }
+  }
+
+};
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // a simple function that rounds values.
@@ -632,6 +713,7 @@ function round(value, precision) {
 // function that changes the visualization based on what button was pressed. it first
 // removes all markers with the removeMarkers function then adds the new ones
 function vizChange(){
+  console.log("vizChange triggered");
   var id = this.id;
   removeMarkers();
   if (id=='petal'){
@@ -640,7 +722,10 @@ function vizChange(){
   } else if (id=='bar'){
     createBarCharts(formattedData, activeYear);
     changeActiveViz(id);
-  };
+  } else if (id=='radar'){
+    createRadarCharts(formattedData, activeYear);
+    changeActiveViz(id);
+  }
 };
 ////////////////////////////////////////////////////////////////////////////////
 //function for removing existing visualizaitons from the map by clearing the panes
@@ -698,6 +783,9 @@ function tempChange(ui){
     changeActiveViz(id);
   } else if (id=='bar'){
     createBarCharts(formattedData, activeYear);
+    changeActiveViz(id);
+  }else if (id=='radar'){
+    createRadarCharts(formattedData, activeYear);
     changeActiveViz(id);
   };
 
