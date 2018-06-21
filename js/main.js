@@ -37,6 +37,19 @@ var age = [[0,1000]];
 var activeViz = 'petal';
 var activeYear = 1000;
 
+//for symbol scaling
+var symbolFactor = 1;
+
+//for stack symbol scaling
+var stackSum = 0;
+// an array with colors to stylize the bar charts. Add more colors for more
+  // variables.
+  // #4F77BB dark blue
+  // #A6CFE5 light blue
+  // #31A148 dark green
+  // #B3D88A light green
+  var colorArray = ["#4F77BB", '#A6CFE5', '#31A148', "#B3D88A"];
+
 // using custom icon.
 var myIcon = L.icon({
   iconUrl:'lib/leaflet/images/LeafIcon_dkblu_lg.png',
@@ -98,6 +111,7 @@ $('#page').append(
     '<a href="#" id="petal"><img alt="Petal Plots" title="Petal Plots" class="control-icon" src="images/PetalPlotButton.png"></a>'+
     '<a href="#" id="bar"><img alt="Stacked Bar Charts" title="Stacked Bar Charts" class="control-icon" src="images/BarChartButton.png"></a>'+
     '<a href="#" id="radar"><img alt="Radar Charts" title="Radar Charts" class="control-icon" src="images/Radar_Plot_Example.png"></a>'+
+    '<a href="#" id="flagpole"><img alt="Flagpole Charts" title="Flagpole Charts" class="control-icon" src="images/Flagpole_Diagram_Example.png"></a>'+
     '</div>'+
 
   '<div class="control-label" style="border-radius:0px;">Taxa</div>'+
@@ -141,8 +155,10 @@ $('#page').append(
   '<img id="tax3" src="lib/leaflet/images/LeafIcon_dkgrn_lg.png">'+
   '<img id="tax4" src="lib/leaflet/images/LeafIcon_ltgrn_lg.png">'+
 '</div>'+
-'<div id="slider-vertical" style="height:200px;"></div>'+
-'<div id="slider-legend"><p id="legend-text">1-1000<br>YBP</p></div>'
+'<div id="slider-vertical" style="height:150px;"></div>'+
+'<div id="slider-legend"><p id="legend-text">1-1000<br>YBP</p></div>'+
+'<div id="symbol_size"> <p>Symbol Size</p> <div id="symbol_slider"></div>  </div'
+
 );
 
 // adding taxa to taxonIDs
@@ -152,6 +168,7 @@ taxonIDs = [ "Picea", "Quercus", "Betula", "Pinus" ]
 document.getElementById ("petal").addEventListener ("click", vizChange, false);
 document.getElementById ("bar").addEventListener ("click", vizChange, false);
 document.getElementById ("radar").addEventListener ("click", vizChange, false);
+document.getElementById ("flagpole").addEventListener ("click", vizChange, false);
 changeActiveViz(activeViz);
 
 //code block creating temporal slider control. Number ov steps based on years.
@@ -170,6 +187,19 @@ $( function() {
     $( "#amount" ).val( $( "#slider-vertical" ).slider( "value" ) );
   } );
 
+//create size slider 
+
+$("#symbol_slider").slider({
+  orientation:"horizontal",
+  min: 0,
+  max: 5,
+  value: 1,
+  step: .5,
+  slide: function(event, ui){
+    symbolSize(ui);
+  }
+});
+
 
 // calls a local version of the formatted output from the getSites, formatData functions.
 $.ajax('Data/formattedData.json', {
@@ -177,12 +207,33 @@ $.ajax('Data/formattedData.json', {
   success: function(response){
     // calling function to organize data
     formattedData = response.data;
+    percentAbundance(formattedData);
     createPetalPlots(formattedData, 1000);
+    //createSiteMarkers(formattedData);
+    findStackSum(formattedData);
     console.log(formattedData);
   }
 });
 
 };
+
+/////////////////////////////////////converts pollen from raw counts to % abundance
+function percentAbundance(formattedData) {
+  for(site of formattedData){
+      var timeObject = site.time;
+      for(period in timeObject){
+          var time = timeObject[period];
+          for(taxa of taxonIDs){
+              if(time["totalValue"] == 0){
+                time[taxa] = 0;
+              }else{
+                time[taxa] = time[taxa]/time["totalValue"];
+              }  
+          }
+  }
+  }
+      return formattedData;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -405,15 +456,48 @@ function formatData(data,ageArray,step) {
 
 };
 
+///////////////////////////////////////////////////////////////////////////
+//site markers
+function createSiteMarkers(data) {
+
+  console.log(data);
+  for(site of data){
+
+    var w = 10,
+        h = 10;
+
+    var lat = site["latitude"],
+        long = site["longitude"],
+        name = site["name"].replace(/ /g, "").replace("'", "");
+
+      //create divIcon with site name id, add to map
+      var siteIcon = L.divIcon({className: "div-icon", html: `<div id=${name}> </div>`});
+      L.marker([lat, long], {icon: siteIcon}).addTo(map);
+
+      var svg = d3.select(`#${name}`)
+                  .append("svg")
+                    .attr("width", w)
+                    .attr("height", h);
+
+      svg.append("circle")
+            .attr("fill", "#000")
+            .attr("cx", w/2)
+            .attr("cy", h/2)
+            .attr("r", 2);
+
+  }
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 
 // Add initial symbols (petal plots) based on data
-function createPetalPlots(data, time){
+function createPetalPlots(data){
 
   // for loop through each site in the data.
   for (var i = 0; i < data.length; i++){
     var site = data[i];
-    var period = site.time[time];
+    var period = site.time[activeYear];
 
     // array to hold all variables defined by the user. Helpful if each
     // site has different variables as well.
@@ -438,7 +522,7 @@ function createPetalPlots(data, time){
           // this if statement resets value to the percent, based on the presence
           // of a totalValue field.
           if (Boolean(period["totalValue"])== true){
-            value = (value/period["totalValue"])*100;
+            value = value*100;
           }
 
 
@@ -450,8 +534,8 @@ function createPetalPlots(data, time){
             var myIcon_dkblu = L.icon({
               // #4F77BB dark blue
               iconUrl:'lib/leaflet/images/LeafIcon_dkblu_lg.png',
-              iconSize: [(2*value),(4*value)],
-              iconAnchor:  [(1*value),(4*value)],
+              iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
+              iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
               popupAnchor: [1, -34],
               tooltipAnchor: [16, -28],
               });
@@ -459,8 +543,8 @@ function createPetalPlots(data, time){
               var myIcon_ltblu = L.icon({
                 // #A6CFE5 light blue
                 iconUrl:'lib/leaflet/images/LeafIcon_ltblu_lg.png',
-                iconSize: [(2*value),(4*value)],
-                iconAnchor:  [(1*value),(4*value)],
+                iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
+                iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
                 popupAnchor: [1, -34],
                 tooltipAnchor: [16, -28],
                 });
@@ -468,8 +552,8 @@ function createPetalPlots(data, time){
               var myIcon_dkgrn = L.icon({
                 // #31A148 dark green
                 iconUrl:'lib/leaflet/images/LeafIcon_dkgrn_lg.png',
-                iconSize: [(2*value),(4*value)],
-                iconAnchor:  [(1*value),(4*value)],
+                iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
+                iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
                 popupAnchor: [1, -34],
                 tooltipAnchor: [16, -28],
                 });
@@ -477,8 +561,8 @@ function createPetalPlots(data, time){
               var myIcon_ltgrn = L.icon({
                 // #B3D88A light green
                 iconUrl:'lib/leaflet/images/LeafIcon_ltgrn_lg.png',
-                iconSize: [(2*value),(4*value)],
-                iconAnchor:  [(1*value),(4*value)],
+                iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
+                iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
                 popupAnchor: [1, -34],
                 tooltipAnchor: [16, -28],
                 });
@@ -543,104 +627,128 @@ function createPetalPlots(data, time){
 
 
 };
+////////////////////////////////////////////////////////////////////////
+//// Should work for bar charts and radar charts.
+//Pass in site, bind data to div, return d3 reference to svg with default w/h.
+
+function responsiveMarker(site) {
+
+//get site lat, long, name
+      var lat = site["latitude"],
+          long = site["longitude"],
+          name = site["name"].replace(/ /g, "").replace("'", "");
+
+  //create divIcon with site name id, add to map
+      var siteIcon = L.divIcon({className: "div-icon", html: `<div id=${name} style="width: 40px; height: 40px;"> </div>`});
+      L.marker([lat, long], {icon: siteIcon}).addTo(map);
+   
+     
+}
 
 ////////////////////////////////////////////////////////////////////////////////
-function createBarCharts(data, time){
+///finds highest combined percent abundance at one site across taxa
+function findStackSum(formattedData) {
+      var sum = 0;
+  for(site of formattedData){
 
-  // an array with colors to stylize the bar charts. Add more colors for more
-  // variables.
-  // #4F77BB dark blue
-  // #A6CFE5 light blue
-  // #31A148 dark green
-  // #B3D88A light green
-  var colorArray = ["#4F77BB", '#A6CFE5', '#31A148', "#B3D88A"];
+      var timeObject = site.time;
 
+      for(time in timeObject){
 
-  // for loop through each site in the data.
-  for (var i = 0; i < data.length; i++){
+          var timeSum = 0;
+          var period = timeObject[time];
 
-    var colorCounter = 0;
-    var site = data[i];
-    var period = site.time[time];
-
-    // boilerplate options for each bar chart
-    var options = {
-    data: {},
-    chartOptions: {}
-    // weight: 1,
-    // color: '#000000'
-  };
-
-
-    // array to hold all variables defined by the user. Helpful if each
-    // site has different variables as well.
-    var variableArray = [];
-
-    // for loop to compile all variables into variableArray
-    for (var variable in period){
-      // if the sites do not have a totalValue field this will still work. This
-      // is tailored to the formatted data I'm using
-      if (variable != "totalValue"){
-        variableArray.push(variable);
-      };
-    };
-
-    // for loop separate from the previous one because the variableArray is needed
-      for (var variable in period){
-          if (variableArray.includes(variable)){
-          var value = period[variable];
-          var color = colorArray[colorCounter];
-          colorCounter++;
-          // this if statement resets value to the percent, based on the presence
-          // of a totalValue field.
-          if (Boolean(period["totalValue"])== true){
-            value = (value/period["totalValue"])*100;
+          for(taxa of taxonIDs){
+                if(period["totalValue"]!=0){
+              timeSum = timeSum + period[taxa];
+                }
           }
-
-          options.data[variable] = value;
-          options.chartOptions[variable] ={
-            fillColor: color,
-            minValue: 0,
-            maxValue: 100,
-            maxHeight: 100,
-            displayText: function (barValue) {
-              return barValue.toFixed(2);
-            }
-          }
+          sum = Math.max(sum,timeSum);
+          
+      }
+  }
+    stackSum = sum;
+}
+//immediately call in ajax
 
 
-        };
-
-      // end of object for loop
-      };
-
-      // width of the barchartmarkers can be changed in line 4624 of the
-      // leaflet-dvf.markers.js file. As it is difficult for the bars to be
-      // taller and skinner (especially considering mobile contexts), it was
-      // sensible to make the bars wider to better show off the data.
-      var barChartMarker = new L.BarChartMarker(new L.LatLng(site.latitude, site.longitude), options);
-      barChartMarker.addTo(barChartLayer);
-
-  };
-
-};
 ////////////////////////////////////////////////////////////////////////////////
-console.log(formattedData);
-console.log(RadarChart);
+function createBarCharts(formattedData) {
 
+//set chart dimensions
+var w = 25*symbolFactor,
+    h = 50*symbolFactor;
+
+//scales
+var stack = d3.stack()
+              .keys(taxonIDs);
+
+//scales
+var yScale = d3.scaleLinear()
+               .domain([0, stackSum])
+               .range([h, 0]);
+
+var colorScale = d3.scaleOrdinal()
+          .domain([0,1,2,3])
+          .range(colorArray);
+
+for(site of formattedData){
+  var name = site["name"].replace(/ /g, "").replace("'", "");
+    if(site.time[activeYear] != 0){
+      //d3stack expects array of objects as input- here just one object
+    var stacked = stack([site.time[activeYear]]);
+    responsiveMarker(site);
+
+   var svg = d3.select(`#${name}`)
+        .append("svg")
+          .attr("width", w)
+          .attr("height", h)
+          .attr("transform", "translate(" + w*(-.5) + "," + (-1)*h + ")");
+
+        svg.selectAll("g")
+        .data(stacked)
+        .enter()
+        .append("g")
+          .attr("fill", function(d) {
+           return colorScale(d.index); 
+          })
+        .selectAll("rect")
+        .data(function(d){return d;})
+        .enter()
+        .append("rect")
+          .attr("x", 0)
+          .attr("y", function(d){
+                return yScale(d[1]);
+          })
+          .attr("width", w)
+          .attr("height", function(d){
+                return (yScale(d[0]) - yScale(d[1])) ;
+          });
+
+}}
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 
 function createRadarCharts(formattedData,time) {
 
+
 ///radar chart config
 var radarChartOptions = {
-  w: 50,
-  h: 50,
+  w: 50*symbolFactor,
+  h: 50*symbolFactor,
   levels: 3,
-  ExtraWidthX: 200,
-  ExtraWidthY: 200,
+  ExtraWidthX: 0,
+  ExtraWidthY: 0,
+  TranslateX: -19*symbolFactor,
+  TranslateY: -19*symbolFactor,
   radius: 1,
   opacityArea: .5,
-  color: "#31A148"
+  color: "#31A148",
+  maxValue: .25
 };
 
 ///////////convert formattedData to radar data.(array within array) Specific to simple radar here
@@ -658,7 +766,7 @@ var formatRadar = function(site) {
     var val = 0;
     var empty = true;
     } else{
-    var val = age[taxa]/age["totalValue"];
+    var val = age[taxa];
     }
 
     empty += val;
@@ -666,7 +774,9 @@ var formatRadar = function(site) {
     radarPoly.push({axis: taxa, value: val});
   }
   radarData.push(radarPoly);
-  radarChartOptions.maxValue = maxVal+ maxVal*.25;
+
+  //uncomment for site specific scaling
+  //radarChartOptions.maxValue = maxVal+ maxVal*.25;
 
   if(empty == true){
     return "empty";
@@ -691,8 +801,6 @@ var formatRadar = function(site) {
 
       ////convert to radar data format, draw radar chart svg
       var d = formatRadar(site);
-      console.log("Ran");
-      console.log(d);
       ///Pass in: id of target div, data in radar format, options for chart
       if(d != "empty"){
         RadarChart.draw(`#${name}`, d, radarChartOptions);
@@ -700,7 +808,118 @@ var formatRadar = function(site) {
   }
 
 };
+/////////////////////////////////////////////////////////////////////////////////////
+function createFlagpole(formattedData) {
 
+/////////////////////////
+var w = 20*symbolFactor,
+    h=50*symbolFactor;
+
+var ageBin = [];
+var ageStep = 1000;
+var ageStart = 1000;
+var ageStop = 12000;
+
+for(var i = ageStart; i <= ageStop; i+=ageStep) {
+  ageBin.push(i);
+}
+
+var xScale = d3.scaleLinear()
+          .range([0, w]),
+    yScale = d3.scaleBand()
+          .domain(ageBin)
+          .range([0, h]),
+    colorScale = d3.scaleOrdinal()
+          .domain([0,1,2,3])
+          .range(colorArray);
+
+var area = d3.area()
+    .x0(function(d) { 
+      return xScale(d[0]);
+    })
+    .x1(function(d){ 
+      return xScale(d[1]); 
+    })
+    .y(function(d,i) { 
+      return yScale(d.data.time);
+    });
+
+var stack = d3.stack()
+    .keys(taxonIDs);
+
+/////////////////change to expected flagpole format////////////////////////
+
+var formatFlagpole = function(site) {
+var expected = [];  
+  for(var time in site){
+    
+    var obj = {};
+      var total = site[time]["totalValue"];
+      obj["total"]= total;
+      obj["time"]= parseFloat(time);
+
+     for(taxa of taxonIDs){
+        var value = site[time][taxa]; 
+      obj[taxa] = value;
+     }
+
+  expected.push(obj);
+  }
+ return stack(expected);
+};
+//////////////////////////////////////////////////////////////////////
+
+///create leaflet div marker for each site, append svg to each
+  for(site of formattedData){
+
+    name = site["name"].replace(/ /g, "").replace("'", "");
+    maxVal = 0;
+      
+      responsiveMarker(site)
+
+   var svg = d3.select(`#${name}`)
+          .append("svg")
+              .attr("width", w)
+              .attr("height", h)
+              .attr("transform", "translate(" + 6 + "," + 6 + ")");
+
+    var stacked = formatFlagpole(site.time);
+
+    xScale.domain([0,stackSum]);
+
+    var layer = svg.selectAll(".layer")
+        .data(stacked)
+        .enter()
+        .append("g")
+          .attr("class", "layer");
+
+      layer.append("path")
+          .attr("class", "area")
+          .style("fill", function(d) {
+           return colorScale(d.index); 
+          })
+          .attr("d", area);
+
+      //add axis
+      svg.append("g")
+      .attr("class", "axis axis--x")
+      //.attr("transform", "translate(" + padHor + "," + padVert + ")")
+      .call(d3.axisTop(xScale).ticks(0));
+
+      svg.append("g")
+      .attr("class", "axis axis--y")
+      //.attr("transform", "translate(" + padHor + "," + padVert + ")")
+      .call(d3.axisLeft(yScale).ticks(12));
+
+      d3.selectAll(".axis")
+            .attr("opacity", .2)
+
+            
+}
+
+///legend section
+
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -717,16 +936,19 @@ function vizChange(){
   var id = this.id;
   removeMarkers();
   if (id=='petal'){
-    createPetalPlots(formattedData, activeYear);
+    createPetalPlots(formattedData);
     changeActiveViz(id);
   } else if (id=='bar'){
-    createBarCharts(formattedData, activeYear);
+    createBarCharts(formattedData);
     changeActiveViz(id);
   } else if (id=='radar'){
-    createRadarCharts(formattedData, activeYear);
+    createRadarCharts(formattedData);
     changeActiveViz(id);
-  }
-};
+  } else if (id=='flagpole'){
+    createFlagpole(formattedData);
+    changeActiveViz(id);
+  };
+}
 ////////////////////////////////////////////////////////////////////////////////
 //function for removing existing visualizaitons from the map by clearing the panes
 function removeMarkers(){
@@ -749,6 +971,31 @@ activeButton.style = "box-shadow: 0px 2px 3px #262626; opacity: 1.0;"
 activeViz = viz;
  //activeButton.style = "opacity: 1.0;"
 }
+
+//////////////////////////////////////////////////////////////////////////////
+function symbolSize(ui) {
+  symbolFactor = ui.value;
+  console.log(symbolFactor);
+
+  if(activeViz == 'petal'){
+    removeMarkers();
+    createPetalPlots(formattedData, );
+  } else if(activeViz == 'bar'){
+    removeMarkers();
+    createBarCharts(formattedData);
+  } else if(activeViz == 'radar'){
+    removeMarkers();
+    createRadarCharts(formattedData);
+  } else if(activeViz == 'flagpole'){
+    removeMarkers();
+    createFlagpole(formattedData);
+  }
+
+
+
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // This function changes the visualization based on the time in the slider bar.
@@ -776,16 +1023,21 @@ function tempChange(ui){
   var year = ageArray[yearSlot];
   activeYear = year;
 
-  removeMarkers();
+  
   var id = activeViz;
+  if(id != 'flagpole'){ removeMarkers(); }
+
   if (id=='petal'){
-    createPetalPlots(formattedData, activeYear);
+    createPetalPlots(formattedData);
     changeActiveViz(id);
   } else if (id=='bar'){
-    createBarCharts(formattedData, activeYear);
+    createBarCharts(formattedData);
     changeActiveViz(id);
   }else if (id=='radar'){
-    createRadarCharts(formattedData, activeYear);
+    createRadarCharts(formattedData);
+    changeActiveViz(id);
+  }else if (id=='flapole'){
+    createFlagpole(formattedData);
     changeActiveViz(id);
   };
 
