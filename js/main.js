@@ -25,6 +25,7 @@ var allRawData = [];
 var allSiteData = [];
 // final array of data in proper format
 var formattedData = [];
+var formattedData2 = [];
 // Layer group to add bar chart markers to. This is so we can easily access
 // and manipulate the icons for temporal/taxa changes.
 var barChartLayer = new L.LayerGroup();
@@ -162,7 +163,9 @@ $('#page').append(
 );
 
 // adding taxa to taxonIDs
-taxonIDs = [ "Picea", "Quercus", "Betula", "Pinus" ]
+taxonIDs = [ "Picea", "Quercus", "Betula", "Pinus"];
+
+taxons = [ "Picea", "Quercus", "Betula", "Pinus","Ulmus", "Tsuga" ];
 
 // adding event listeners to the buttons to invoke vizChange when clicked
 document.getElementById ("petal").addEventListener ("click", vizChange, false);
@@ -212,6 +215,7 @@ $.ajax('Data/formattedData.json', {
     //createSiteMarkers(formattedData);
     findStackSum(formattedData);
     console.log(formattedData);
+    getSites();
   }
 });
 
@@ -265,7 +269,7 @@ function getSites(age, boxArr){
   // age is used to determine which samples to retrieve
   // NOTE: want to take all the data and put it into one object/array to be dealt with that way.
 
-  for (var i = 0; i < taxonIDs.length; i++) {
+  for (var i = 0; i < taxons.length; i++) {
     var youngAge = young;
 
       // for loop to do a call for each time period.
@@ -282,7 +286,7 @@ function getSites(age, boxArr){
         // constructing URL based on coordinates (to be changed to user inputted bounding box later) and the taxon and ages.
         // need to change this so it retrieves information for all offered taxa.
         var urlBaseMN = 'https://apidev.neotomadb.org/v1/data/pollen?wkt=POLYGON((-97.294921875%2048.93964118139728,-96.6357421875%2043.3601336603352,-91.20849609375%2043.53560718808973,-93.09814453125%2045.10745410539934,-92.17529296875%2046.69749299744142,-88.79150390625%2047.874907453605935,-93.53759765625%2048.910767192107755,-97.294921875%2048.93964118139728))';
-        var url = [urlBaseMN, '&taxonname=', taxonIDs[i], '&ageold=', oldAge, '&ageyoung=', youngAge].join('');
+        var url = [urlBaseMN, '&taxonname=', taxons[i], '&ageold=', oldAge, '&ageyoung=', youngAge].join('');
         // ajax call to neotoma database
         $.ajax(url, {
           dataType: "json",
@@ -319,7 +323,7 @@ function formatData(data,ageArray,step) {
 
    allRawData.push(data);
    // if statement triggers after everything has run and all the data has been collected.
-   if (ageCounter == taxonIDs.length*ageArray.length){
+   if (ageCounter == taxons.length*ageArray.length){
      // console.log("it is finished +");
      // console.log(allRawData);
 
@@ -343,7 +347,7 @@ function formatData(data,ageArray,step) {
    }
   });
 
-  console.log(taxonIDs);
+  console.log(taxons);
   console.log(ageArray);
   console.log(sitesFinal);
   console.log(allRawData);
@@ -390,8 +394,8 @@ function formatData(data,ageArray,step) {
 
               // for loop creating variable for each taxa in taxonIDs arrays
               // under each temporal bin object
-              for (var l = 0; l < taxonIDs.length; l++){
-                var taxaSlot = taxonIDs[l];
+              for (var l = 0; l < taxons.length; l++){
+                var taxaSlot = taxons[l];
                 currentSite.time[temporalSlot][taxaSlot] = 0;
               }
 
@@ -440,15 +444,15 @@ function formatData(data,ageArray,step) {
     }
 
     // pushes data into formattedData array to be used in visualizations
-     formattedData.push(currentSite);
+     formattedData2.push(currentSite);
 
   });
 
 
-        if (formattedData.length == sitesFinal.length){
-        console.log(formattedData);
+        if (formattedData2.length == sitesFinal.length){
+        console.log(formattedData2);
 
-        createPetalPlots(formattedData);
+        //createPetalPlots(formattedData);
 
         };
 
@@ -743,8 +747,8 @@ var radarChartOptions = {
   levels: 3,
   ExtraWidthX: 0,
   ExtraWidthY: 0,
-  TranslateX: -19*symbolFactor,
-  TranslateY: -19*symbolFactor,
+  TranslateX: -25*symbolFactor+6,
+  TranslateY: -25*symbolFactor+6,
   radius: 1,
   opacityArea: .5,
   color: "#31A148",
