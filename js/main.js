@@ -804,7 +804,6 @@ var formatRadar = function(site) {
     radarPoly.push({axis: taxa, value: val});
   }
   radarData.push(radarPoly);
-  maxArray.push(maxVal);
 
   //uncomment for site specific scaling
   //radarChartOptions.maxValue = maxVal+ maxVal*.25;
