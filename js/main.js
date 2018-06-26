@@ -15,6 +15,8 @@ var map;
 var boxArr =[];
 // array that holds values (pollen scientific names) of the taxon dropboxes.
 var taxonIDs;
+
+var fullTaxonIDs = [ "Picea", "Quercus","Betula", "Pinus", "Ambrosia", "Ulmus"];
 // array that stores all called data in one place. Sorted by Taxa.
 var allTaxaData = [];
 // counter that sorts through data to store in allTaxaData.
@@ -26,6 +28,7 @@ var allSiteData = [];
 // final array of data in proper format
 var formattedData = [];
 var formattedData2 = [];
+var formattedData3 = [];
 // Layer group to add bar chart markers to. This is so we can easily access
 // and manipulate the icons for temporal/taxa changes.
 var barChartLayer = new L.LayerGroup();
@@ -41,6 +44,9 @@ var activeYear = 1000;
 //for symbol scaling
 var symbolFactor = 1;
 
+//turn axis on and off
+var axis = true;
+
 //for stack symbol scaling
 var stackSum = 0;
 // an array with colors to stylize the bar charts. Add more colors for more
@@ -49,7 +55,7 @@ var stackSum = 0;
   // #A6CFE5 light blue
   // #31A148 dark green
   // #B3D88A light green
-  var colorArray = ["#4F77BB", '#A6CFE5', '#31A148', "#B3D88A"];
+  var colorArray = ["#4F77BB", '#A6CFE5', '#31A148', "#B3D88A","#7d4db7", "#b9a3e2"];
 
 // using custom icon.
 var myIcon = L.icon({
@@ -116,39 +122,12 @@ $('#page').append(
     '</div>'+
 
   '<div class="control-label" style="border-radius:0px;">Taxa</div>'+
-  '<select disabled class="control-dropdown"id="taxon1" onchange="updateSymbols(this)">'+
-       '<option selected="selected" value="Picea">Picea</option>'+
-       '<option value="Quercus">Quercus</option>'+
-       '<option value="Acer">Acer</option>'+
-       '<option value="Pinus">Pinus</option>'+
-       '<option value="Tsuga">Tsuga</option>'+
-       '<option value="Betula">Betula</option>'+
-  '</select>'+
-  '<select disabled class="control-dropdown"id="taxon2" onchange="updateSymbols(this)">'+
-       '<option value="Picea">Picea</option>'+
-       '<option selected="selected" value="Quercus">Quercus</option>'+
-       '<option value="Acer">Acer</option>'+
-       '<option value="Pinus">Pinus</option>'+
-       '<option value="Tsuga">Tsuga</option>'+
-       '<option value="Betula">Betula</option>'+
-  '</select>'+
-  '<select disabled class="control-dropdown"id="taxon3" onchange="updateSymbols(this)">'+
-       '<option value="Picea">Picea</option>'+
-       '<option value="Quercus">Quercus</option>'+
-       '<option value="Acer">Acer</option>'+
-       '<option value="Pinus">Pinus</option>'+
-       '<option value="Tsuga">Tsuga</option>'+
-       '<option selected="selected" value="Betula">Betula</option>'+
-  '</select>'+
-  '<select disabled class="control-dropdown"id="taxon4" onchange="updateSymbols(this)"'+
-  'style= "border-radius:0px 0px 3px 3px;">'+
-       '<option value="Picea">Picea</option>'+
-       '<option value="Quercus">Quercus</option>'+
-       '<option value="Acer">Acer</option>'+
-       '<option selected="selected" value="Pinus">Pinus</option>'+
-       '<option value="Tsuga">Tsuga</option>'+
-       '<option value="Betula">Betula</option>'+
-  '</select>'+
+  '<div class="control-dropdown on"id="Picea">Picea</div>'+
+  '<div class="control-dropdown on"id="Quercus">Quercus</div>'+
+  '<div class="control-dropdown on"id="Betula">Betula</div>'+
+  '<div class="control-dropdown on"id="Pinus">Pinus</div>'+
+  '<div class="control-dropdown"id="Ambrosia">Ambrosia</div>'+
+  '<div class="control-dropdown"id="Ulmus">Ulmus</div>'+
 '</div>'+
 '<div id="legend">'+
   '<img id="tax1" src="lib/leaflet/images/LeafIcon_dkblu_lg.png">'+
@@ -158,14 +137,16 @@ $('#page').append(
 '</div>'+
 '<div id="slider-vertical" style="height:150px;"></div>'+
 '<div id="slider-legend"><p id="legend-text">1-1000<br>YBP</p></div>'+
-'<div id="symbol_size"> <p>Symbol Size</p> <div id="symbol_slider"></div>  </div'
+'<div id="symbol_size"> <p>Symbol Size</p> <div id="symbol_slider"></div>'+
+'<div id="axis_toggle"> <h3>Axis</h3> <p class="on">On</p> <p>Off</p> </div>'+
+'  </div'
 
 );
 
 // adding taxa to taxonIDs
-taxonIDs = [ "Picea", "Quercus", "Betula", "Pinus"];
+//taxonIDs = [ "Picea", "Quercus", "Betula", "Pinus"];
 
-taxons = [ "Picea", "Quercus", "Betula", "Pinus","Ulmus", "Tsuga" ];
+taxonIDs = [ "Picea", "Quercus","Betula", "Pinus"];
 
 // adding event listeners to the buttons to invoke vizChange when clicked
 document.getElementById ("petal").addEventListener ("click", vizChange, false);
@@ -173,6 +154,34 @@ document.getElementById ("bar").addEventListener ("click", vizChange, false);
 document.getElementById ("radar").addEventListener ("click", vizChange, false);
 document.getElementById ("flagpole").addEventListener ("click", vizChange, false);
 changeActiveViz(activeViz);
+
+///add event listeners for taxa change////////////////////////
+d3.selectAll(".control-dropdown").on("click", function(){
+
+      var div = d3.select(this);
+      var taxa = div.attr("id");
+      var taxaOff = div.classed("on")==false;
+      var reachedMin = (taxonIDs.length == 2);
+
+      if((reachedMin == false) || (reachedMin ==true && taxaOff ==true) ){ //minimum 2 taxa
+
+    //change button appearance
+  taxaOff ? div.classed("on", true) : div.classed("on", false);
+
+    //add or remove from taxonIDs
+    if(taxaOff){
+      taxonIDs.push(taxa);
+    }else {
+    var index = taxonIDs.indexOf(taxa);
+    taxonIDs.splice(index, 1);
+    }
+  }
+    vizChange(activeViz);
+   
+});
+//////////////////////////////////////////////////////////////
+//event listener for axis toggle
+d3.select("#axis_toggle").selectAll("p").on("click", axisToggle);
 
 //code block creating temporal slider control. Number ov steps based on years.
 $( function() {
@@ -190,7 +199,7 @@ $( function() {
     $( "#amount" ).val( $( "#slider-vertical" ).slider( "value" ) );
   } );
 
-//create size slider 
+//////////////////create size slider ///////////////////////
 
 $("#symbol_slider").slider({
   orientation:"horizontal",
@@ -203,19 +212,17 @@ $("#symbol_slider").slider({
   }
 });
 
-
+/////////////////////////////////////////
 // calls a local version of the formatted output from the getSites, formatData functions.
-$.ajax('Data/formattedData.json', {
+$.ajax('Data/formattedData3.json', {
   dataType: "json",
   success: function(response){
     // calling function to organize data
-    formattedData = response.data;
+    formattedData = response;
     percentAbundance(formattedData);
     createPetalPlots(formattedData, 1000);
     //createSiteMarkers(formattedData);
-    findStackSum(formattedData);
     console.log(formattedData);
-    getSites();
   }
 });
 
@@ -223,11 +230,13 @@ $.ajax('Data/formattedData.json', {
 
 /////////////////////////////////////converts pollen from raw counts to % abundance
 function percentAbundance(formattedData) {
+
+  console.log(formattedData);
   for(site of formattedData){
       var timeObject = site.time;
       for(period in timeObject){
           var time = timeObject[period];
-          for(taxa of taxonIDs){
+          for(taxa of fullTaxonIDs){
               if(time["totalValue"] == 0){
                 time[taxa] = 0;
               }else{
@@ -236,8 +245,42 @@ function percentAbundance(formattedData) {
           }
   }
   }
+    console.log(formattedData);
       return formattedData;
 }
+//////////////////////////////////////////////////////////////////////////
+function axisToggle() {
+
+var p = $(this);
+var text = p.text();
+var inActive = p.hasClass("on") == false;
+var sib = p.siblings();
+
+if(inActive){
+  //change button appearance
+  p.addClass("on");
+  sib.removeClass("on");
+
+  //change axis state
+  if(text == "On"){
+    axis = true;
+  } else {
+    axis = false;
+  }
+
+  //redraw if radar or flapole are active
+  if(activeViz == "radar" || "flagpole"){
+    vizChange(activeViz);
+  }
+
+}
+
+
+
+
+
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -269,7 +312,7 @@ function getSites(age, boxArr){
   // age is used to determine which samples to retrieve
   // NOTE: want to take all the data and put it into one object/array to be dealt with that way.
 
-  for (var i = 0; i < taxons.length; i++) {
+  for (var i = 0; i < fullTaxonIDs.length; i++) {
     var youngAge = young;
 
       // for loop to do a call for each time period.
@@ -282,11 +325,11 @@ function getSites(age, boxArr){
 
         // console.log("youngAge is: "+youngAge);
         // console.log("oldAge is: "+oldAge);
-
+          console.log()
         // constructing URL based on coordinates (to be changed to user inputted bounding box later) and the taxon and ages.
         // need to change this so it retrieves information for all offered taxa.
         var urlBaseMN = 'https://apidev.neotomadb.org/v1/data/pollen?wkt=POLYGON((-97.294921875%2048.93964118139728,-96.6357421875%2043.3601336603352,-91.20849609375%2043.53560718808973,-93.09814453125%2045.10745410539934,-92.17529296875%2046.69749299744142,-88.79150390625%2047.874907453605935,-93.53759765625%2048.910767192107755,-97.294921875%2048.93964118139728))';
-        var url = [urlBaseMN, '&taxonname=', taxons[i], '&ageold=', oldAge, '&ageyoung=', youngAge].join('');
+        var url = [urlBaseMN, '&taxonname=', fullTaxonIDs[i], '&ageold=', oldAge, '&ageyoung=', youngAge].join('');
         // ajax call to neotoma database
         $.ajax(url, {
           dataType: "json",
@@ -323,7 +366,7 @@ function formatData(data,ageArray,step) {
 
    allRawData.push(data);
    // if statement triggers after everything has run and all the data has been collected.
-   if (ageCounter == taxons.length*ageArray.length){
+   if (ageCounter == fullTaxonIDs.length*ageArray.length){
      // console.log("it is finished +");
      // console.log(allRawData);
 
@@ -347,7 +390,7 @@ function formatData(data,ageArray,step) {
    }
   });
 
-  console.log(taxons);
+  console.log(fullTaxonIDs);
   console.log(ageArray);
   console.log(sitesFinal);
   console.log(allRawData);
@@ -394,8 +437,8 @@ function formatData(data,ageArray,step) {
 
               // for loop creating variable for each taxa in taxonIDs arrays
               // under each temporal bin object
-              for (var l = 0; l < taxons.length; l++){
-                var taxaSlot = taxons[l];
+              for (var l = 0; l < fullTaxonIDs.length; l++){
+                var taxaSlot = fullTaxonIDs[l];
                 currentSite.time[temporalSlot][taxaSlot] = 0;
               }
 
@@ -444,13 +487,13 @@ function formatData(data,ageArray,step) {
     }
 
     // pushes data into formattedData array to be used in visualizations
-     formattedData2.push(currentSite);
+     formattedData3.push(currentSite);
 
   });
 
 
-        if (formattedData2.length == sitesFinal.length){
-        console.log(formattedData2);
+        if (formattedData3.length == sitesFinal.length){
+        console.log(formattedData3);
 
         //createPetalPlots(formattedData);
 
@@ -492,50 +535,41 @@ function createSiteMarkers(data) {
   }
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////
 
 // Add initial symbols (petal plots) based on data
 function createPetalPlots(data){
+ 
 
-  // for loop through each site in the data.
-  for (var i = 0; i < data.length; i++){
-    var site = data[i];
-    var period = site.time[activeYear];
+//for dynamic angle depending on # of variables displayed
+var angleDomain = [];
+for(i=0; i<taxonIDs.length;i++){
+  angleDomain.push(i);
+}
 
-    // array to hold all variables defined by the user. Helpful if each
-    // site has different variables as well.
-    var variableArray = [];
+var rotationScale = d3.scaleBand()
+                      .domain(angleDomain)
+                      .range([0,360]);
 
-    // for loop to compile all variables into variableArray
-    for (var variable in period){
-      // if the sites do not have a totalValue field this will still work. This
-      // is tailored to the formatted data I'm using
-      if (variable != "totalValue"){
-        variableArray.push(variable);
-      };
-    };
+//create petals for each site
+for(site of formattedData){
+  var period = site.time[activeYear];
 
-    // another for loop to use variableArray and apply the appropriate properties
-    // for the symbols.
-    for (var j = 0; j < variableArray.length; j++){
-      for (var variable in period){
-        if (variableArray[j] == variable){
-          var value = period[variable];
+//loop through data for match of active taxa
+  for(var taxa of taxonIDs){
+  for(var variable in period){
+      if(taxa==variable){
 
-          // this if statement resets value to the percent, based on the presence
-          // of a totalValue field.
-          if (Boolean(period["totalValue"])== true){
-            value = value*100;
-          }
+      var value = period[variable]*150;
+      var index = taxonIDs.indexOf(taxa);
+      var degrees = rotationScale(index);
+console.log(degrees);
 
-
-          // defining custom icons for each petal. The icons and size can easily
+// defining custom icons for each petal. The icons and size can easily
           // be changed. However, the ratios in the iconSize and iconAnchor need to remain
           // the same. This ensures the icon is anchored to the correct lat lon
           // no matter the size.
-
-            var myIcon_dkblu = L.icon({
+ var myIcon_dkblu = L.icon({
               // #4F77BB dark blue
               iconUrl:'lib/leaflet/images/LeafIcon_dkblu_lg.png',
               iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
@@ -544,93 +578,87 @@ function createPetalPlots(data){
               tooltipAnchor: [16, -28],
               });
 
-              var myIcon_ltblu = L.icon({
-                // #A6CFE5 light blue
-                iconUrl:'lib/leaflet/images/LeafIcon_ltblu_lg.png',
-                iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
-                iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
-                popupAnchor: [1, -34],
-                tooltipAnchor: [16, -28],
-                });
+var myIcon_ltblu = L.icon({
+  // #A6CFE5 light blue
+  iconUrl:'lib/leaflet/images/LeafIcon_ltblu_lg.png',
+  iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
+  iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  });
 
-              var myIcon_dkgrn = L.icon({
-                // #31A148 dark green
-                iconUrl:'lib/leaflet/images/LeafIcon_dkgrn_lg.png',
-                iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
-                iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
-                popupAnchor: [1, -34],
-                tooltipAnchor: [16, -28],
-                });
+var myIcon_dkgrn = L.icon({
+  // #31A148 dark green
+  iconUrl:'lib/leaflet/images/LeafIcon_dkgrn_lg.png',
+  iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
+  iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  });
 
-              var myIcon_ltgrn = L.icon({
-                // #B3D88A light green
-                iconUrl:'lib/leaflet/images/LeafIcon_ltgrn_lg.png',
-                iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
-                iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
-                popupAnchor: [1, -34],
-                tooltipAnchor: [16, -28],
-                });
+var myIcon_ltgrn = L.icon({
+  // #B3D88A light green
+  iconUrl:'lib/leaflet/images/LeafIcon_ltgrn_lg.png',
+  iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
+  iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  });
 
-                  if (variable == variableArray[0]){
-                    var degrees = 360;
-                    var variableID = "taxon1";
-                    var myIcon = myIcon_dkblu;
-                  }
-                  else if (variable == variableArray[1]){
-                    var degrees = 90;
-                    var variableID = "taxon2";
-                    var myIcon = myIcon_ltblu;
-                  }
-                  else if (variable == variableArray[2]){
-                    var degrees = 180;
-                    var variableID = "taxon3";
-                    var myIcon = myIcon_dkgrn;
-                  }
-                  else if (variable == variableArray[3]){
-                    var degrees = 270;
-                    var variableID = "taxon4";
-                    var myIcon = myIcon_ltgrn;
-                  };
+var myIcon_dkpurp = L.icon({
+  // #B3D88A light green
+  iconUrl:'lib/leaflet/images/LeafIcon_dkpurp.png',
+  iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
+  iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  });
 
-                  // marker is customized to display information from the
+var myIcon_ltpurp = L.icon({
+  // #B3D88A light green
+  iconUrl:'lib/leaflet/images/LeafIcon_ltpurp.png',
+  iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
+  iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  });
+
+
+
+      if(taxa == "Picea"){
+        var myIcon = myIcon_dkblu;
+      } else if(taxa == "Quercus"){      
+        var myIcon = myIcon_ltblu;
+      } else if(taxa == "Betula"){        
+        var myIcon = myIcon_dkgrn;
+      } else if(taxa == "Pinus"){       
+        var myIcon = myIcon_ltgrn;
+      } else if(taxa == "Ambrosia"){       
+        var myIcon = myIcon_dkpurp;
+      } else if(taxa == "Ulmus"){     
+        var myIcon = myIcon_ltpurp;
+      }
+
+// marker is customized to display information from the
                   // site object.
                   var marker = L.marker([site.latitude,site.longitude], {
                     rotationAngle: degrees,
                     icon:myIcon,
                     name: site.name,
                     siteID: site.siteID,
-                    legend: variableID
+                    legend: taxa
                   });
                   marker.addTo(petalPlotLayer);
 
-                  //adding markerID for tooltips.
-                  // NOTE: need to address this. I believe this was used to remove
-                  // markers from the map, but need to check.
-                  markers[marker._leaflet_id] = marker;
-
-                   //
-                   var popupContent = "<p><b>Variable:</b> " + variable + "</p>";
-
-                   //add formatted attribute to popup content string
-                   popupContent += "<p><b>% abundance:</b> <br>" + round(value,2) + "</p>";
-                   popupContent += "<p id='popup-site' value='"+site.siteID+"'><b>Site ID:</b> <br>" + site.siteID + "</p>";
-                   popupContent += "<p id='popup-site'><b>Site Name:</b> <br>" + site.name + "</p>";
-
-                   marker.bindPopup(popupContent);
 
 
+  }
+  }
+  }
 
-        // end of variable if
-        };
-      // end of object for loop
-      };
-
-    };
-
-  };
-
-
+}
 };
+
 ////////////////////////////////////////////////////////////////////////
 //// Should work for bar charts and radar charts.
 //Pass in site, bind data to div, return d3 reference to svg with default w/h.
@@ -678,6 +706,7 @@ function findStackSum(formattedData) {
 
 ////////////////////////////////////////////////////////////////////////////////
 function createBarCharts(formattedData) {
+findStackSum(formattedData);
 
 //set chart dimensions
 var w = 25*symbolFactor,
@@ -693,7 +722,7 @@ var yScale = d3.scaleLinear()
                .range([h, 0]);
 
 var colorScale = d3.scaleOrdinal()
-          .domain([0,1,2,3])
+          .domain(fullTaxonIDs)
           .range(colorArray);
 
 for(site of formattedData){
@@ -714,7 +743,8 @@ for(site of formattedData){
         .enter()
         .append("g")
           .attr("fill", function(d) {
-           return colorScale(d.index); 
+            console.log(d);
+           return colorScale(d.key); 
           })
         .selectAll("rect")
         .data(function(d){return d;})
@@ -732,9 +762,6 @@ for(site of formattedData){
 }}
 
 }
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
 
 function createRadarCharts(formattedData,time) {
@@ -752,7 +779,8 @@ var radarChartOptions = {
   radius: 1,
   opacityArea: .5,
   color: "#31A148",
-  maxValue: .25
+  maxValue: .25,
+  drawAxis: axis
 };
 
 ///////////convert formattedData to radar data.(array within array) Specific to simple radar here
@@ -814,7 +842,7 @@ var formatRadar = function(site) {
 };
 /////////////////////////////////////////////////////////////////////////////////////
 function createFlagpole(formattedData) {
-
+findStackSum(formattedData);
 /////////////////////////
 var w = 20*symbolFactor,
     h=50*symbolFactor;
@@ -834,7 +862,7 @@ var xScale = d3.scaleLinear()
           .domain(ageBin)
           .range([0, h]),
     colorScale = d3.scaleOrdinal()
-          .domain([0,1,2,3])
+          .domain(fullTaxonIDs)
           .range(colorArray);
 
 var area = d3.area()
@@ -900,10 +928,12 @@ var expected = [];
       layer.append("path")
           .attr("class", "area")
           .style("fill", function(d) {
-           return colorScale(d.index); 
+           return colorScale(d.key); 
           })
           .attr("d", area);
 
+
+if(axis){
       //add axis
       svg.append("g")
       .attr("class", "axis axis--x")
@@ -917,7 +947,7 @@ var expected = [];
 
       d3.selectAll(".axis")
             .attr("opacity", .2)
-
+}
             
 }
 
@@ -935,9 +965,14 @@ function round(value, precision) {
  ////////////////////////////////////////////////////////////////////////////////
 // function that changes the visualization based on what button was pressed. it first
 // removes all markers with the removeMarkers function then adds the new ones
-function vizChange(){
+function vizChange(active){
   console.log("vizChange triggered");
+  
   var id = this.id;
+  if(typeof(active) == 'string'){
+    id=active;
+  }
+
   removeMarkers();
   if (id=='petal'){
     createPetalPlots(formattedData);
@@ -979,7 +1014,6 @@ activeViz = viz;
 //////////////////////////////////////////////////////////////////////////////
 function symbolSize(ui) {
   symbolFactor = ui.value;
-  console.log(symbolFactor);
 
   if(activeViz == 'petal'){
     removeMarkers();
