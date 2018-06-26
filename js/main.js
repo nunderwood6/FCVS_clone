@@ -231,7 +231,6 @@ $.ajax('Data/formattedData3.json', {
 /////////////////////////////////////converts pollen from raw counts to % abundance
 function percentAbundance(formattedData) {
 
-  console.log(formattedData);
   for(site of formattedData){
       var timeObject = site.time;
       for(period in timeObject){
@@ -245,7 +244,7 @@ function percentAbundance(formattedData) {
           }
   }
   }
-    console.log(formattedData);
+  
       return formattedData;
 }
 //////////////////////////////////////////////////////////////////////////
@@ -325,7 +324,7 @@ function getSites(age, boxArr){
 
         // console.log("youngAge is: "+youngAge);
         // console.log("oldAge is: "+oldAge);
-          console.log()
+        
         // constructing URL based on coordinates (to be changed to user inputted bounding box later) and the taxon and ages.
         // need to change this so it retrieves information for all offered taxa.
         var urlBaseMN = 'https://apidev.neotomadb.org/v1/data/pollen?wkt=POLYGON((-97.294921875%2048.93964118139728,-96.6357421875%2043.3601336603352,-91.20849609375%2043.53560718808973,-93.09814453125%2045.10745410539934,-92.17529296875%2046.69749299744142,-88.79150390625%2047.874907453605935,-93.53759765625%2048.910767192107755,-97.294921875%2048.93964118139728))';
@@ -563,7 +562,6 @@ for(site of formattedData){
       var value = period[variable]*150;
       var index = taxonIDs.indexOf(taxa);
       var degrees = rotationScale(index);
-console.log(degrees);
 
 // defining custom icons for each petal. The icons and size can easily
           // be changed. However, the ratios in the iconSize and iconAnchor need to remain
@@ -743,7 +741,6 @@ for(site of formattedData){
         .enter()
         .append("g")
           .attr("fill", function(d) {
-            console.log(d);
            return colorScale(d.key); 
           })
         .selectAll("rect")
@@ -779,9 +776,10 @@ var radarChartOptions = {
   radius: 1,
   opacityArea: .5,
   color: "#31A148",
-  maxValue: .25,
+  maxValue: .126,
   drawAxis: axis
 };
+
 
 ///////////convert formattedData to radar data.(array within array) Specific to simple radar here
 var formatRadar = function(site) {
@@ -806,6 +804,7 @@ var formatRadar = function(site) {
     radarPoly.push({axis: taxa, value: val});
   }
   radarData.push(radarPoly);
+  maxArray.push(maxVal);
 
   //uncomment for site specific scaling
   //radarChartOptions.maxValue = maxVal+ maxVal*.25;
@@ -966,7 +965,6 @@ function round(value, precision) {
 // function that changes the visualization based on what button was pressed. it first
 // removes all markers with the removeMarkers function then adds the new ones
 function vizChange(active){
-  console.log("vizChange triggered");
   
   var id = this.id;
   if(typeof(active) == 'string'){
