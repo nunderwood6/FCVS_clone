@@ -29,6 +29,9 @@ var allSiteData = [];
 var formattedData = [];
 var formattedData2 = [];
 var formattedData3 = [];
+var legendData = [];
+var legendStackData;
+
 // Layer group to add bar chart markers to. This is so we can easily access
 // and manipulate the icons for temporal/taxa changes.
 var barChartLayer = new L.LayerGroup();
@@ -129,7 +132,7 @@ $('#page').append(
   '<div class="control-dropdown"id="Ambrosia">Ambrosia</div>'+
   '<div class="control-dropdown"id="Ulmus">Ulmus</div>'+
 '</div>'+
-'<div id="legend">'+
+'<div id="legend2">'+
   '<img id="tax1" src="lib/leaflet/images/LeafIcon_dkblu_lg.png">'+
   '<img id="tax2" src="lib/leaflet/images/LeafIcon_ltblu_lg.png">'+
   '<img id="tax3" src="lib/leaflet/images/LeafIcon_dkgrn_lg.png">'+
@@ -139,6 +142,7 @@ $('#page').append(
 '<div id="slider-legend"><p id="legend-text">1-1000<br>YBP</p></div>'+
 '<div id="symbol_size"> <p>Symbol Size</p> <div id="symbol_slider"></div>'+
 '<div id="axis_toggle"> <h3>Axis</h3> <p class="on">On</p> <p>Off</p> </div>'+
+'<div id="legend"> <h5>Legend</h5> </div>'+
 '  </div'
 
 );
@@ -225,6 +229,24 @@ $.ajax('Data/formattedData3.json', {
     console.log(formattedData);
   }
 });
+
+
+$.ajax("Data/legend.json", {
+  dataType: "json",
+  success: function(response){
+    legendData = response[0];
+  }
+});
+
+$.get("Data/legendStack.json", function(response){
+      console.log(response);
+      legendStackData = response;
+});
+
+
+
+
+
 
 };
 
@@ -621,8 +643,6 @@ var myIcon_ltpurp = L.icon({
   tooltipAnchor: [16, -28],
   });
 
-
-
       if(taxa == "Picea"){
         var myIcon = myIcon_dkblu;
       } else if(taxa == "Quercus"){      
@@ -647,8 +667,6 @@ var myIcon_ltpurp = L.icon({
                     legend: taxa
                   });
                   marker.addTo(petalPlotLayer);
-
-
 
   }
   }
@@ -688,7 +706,7 @@ function findStackSum(formattedData) {
           var timeSum = 0;
           var period = timeObject[time];
 
-          for(taxa of taxonIDs){
+          for(taxa of fullTaxonIDs){
                 if(period["totalValue"]!=0){
               timeSum = timeSum + period[taxa];
                 }
@@ -757,12 +775,86 @@ for(site of formattedData){
           });
 
 }}
+////////////////////////////////////////////////////////////////////////
+var legendW = 150,
+    legendH = 150;
+
+///remove previous legend
+var legendContainer = d3.select("div#legend").select(".container").remove();
+                          
+  ///create legend
+var legendSvg = d3.select("div#legend")
+                      .append("div")
+                        .attr("class", "container")
+                    .append("svg")
+                      .attr("width", legendW)
+                      .attr("height", legendH);
+
+
+for(taxa of taxonIDs){
+  var index = taxonIDs.indexOf(taxa);
+
+    legendSvg.append("rect")
+              .attr("width", legendW/2)
+              .attr("height", legendH/taxonIDs.length-5)
+              .attr("x", legendW/4)
+              .attr("y", function(){
+                var h = legendH/taxonIDs.length - 5;
+                return legendH - h*(index+1);
+              })
+              .attr("fill", function(){
+                  return colorScale(taxa);
+              });
+
+    //legend labels
+    legendSvg.append("text")
+              .text(taxa)
+              .attr("text-anchor", "middle")
+              .attr("x", legendW/2)
+              .attr("y", function(){
+                var h = legendH/taxonIDs.length - 5;
+                return legendH - h*(index+1)+(.7*h);
+              });
+
+}
+
+
+///alternative use legend data(would need to calculate new stackSum or create
+//rectangle specific data)
+
+ /*                     
+var stacked = ([legendData.time[activeYear]]);
+
+    legendSvg.selectAll("g")
+              .data(stacked)
+              .enter()
+              .append("g")
+              .attr("fill", function(d) {
+                 return colorScale(d.key); 
+                })
+              .selectAll("rect")
+              .data(function(d){return d;})
+              .enter()
+              .append("rect")
+                .attr("x", legendW/2)
+                .attr("y", function(d){
+                      return yScale(d[1]);
+                })
+                .attr("width", 50)//half of total height
+                .attr("height", function(d){
+                      return (yScale(d[0]) - yScale(d[1])) ;
+                });
+*/
+
+
+
+
 
 }
 ////////////////////////////////////////////////////////////////////////////////
 
 function createRadarCharts(formattedData,time) {
-
+var maxVal = 0;
 
 ///radar chart config
 var radarChartOptions = {
@@ -771,13 +863,14 @@ var radarChartOptions = {
   levels: 3,
   ExtraWidthX: 0,
   ExtraWidthY: 0,
-  TranslateX: -25*symbolFactor+6,
+  TranslateX: -25*symbolFactor+6,//so chart is center within div(default 12x12)
   TranslateY: -25*symbolFactor+6,
   radius: 1,
   opacityArea: .5,
   color: "#31A148",
-  maxValue: .126,
-  drawAxis: axis
+  maxValue: .126,//should calculate dynamically
+  drawAxis: axis,
+  drawLabels: false
 };
 
 
@@ -787,7 +880,6 @@ var formatRadar = function(site) {
 
   var radarData = [];
   var radarPoly = [];
-  var maxVal = 0;
   var empty = false;
 
 
@@ -798,7 +890,7 @@ var formatRadar = function(site) {
     } else{
     var val = age[taxa];
     }
-
+  
     empty += val;
     maxVal = Math.max(maxVal, val);
     radarPoly.push({axis: taxa, value: val});
@@ -837,10 +929,45 @@ var formatRadar = function(site) {
       }
   }
 
+//////////////////////draw legend
+///remove previous legend
+var legendContainer = d3.select("div#legend").select(".container").remove();
+                          
+  ///create legend
+var legenddiv = d3.select("div#legend")
+                      .append("div")
+                        .attr("class", "container");
+                    
+var legendChartOptions = {
+  w: 140,
+  h: 115,
+  levels: 3,
+  ExtraWidthX: 50,
+  ExtraWidthY: 50,
+  TranslateX: 0,
+  TranslateY: 5,
+  gTranslateX: 20,
+  gTranslateY: 22,
+  radius: 1,
+  opacityArea: .5,
+  color: "#31A148",
+  maxValue: .126,
+  drawAxis: axis,
+  drawLabels: true
+};
+
+
+console.log(legendData);
+var d = formatRadar(legendData);
+console.log(d);
+
+RadarChart.draw("div.container", d, legendChartOptions);
+
 };
 /////////////////////////////////////////////////////////////////////////////////////
 function createFlagpole(formattedData) {
 findStackSum(formattedData);
+
 /////////////////////////
 var w = 20*symbolFactor,
     h=50*symbolFactor;
@@ -854,10 +981,12 @@ for(var i = ageStart; i <= ageStop; i+=ageStep) {
   ageBin.push(i);
 }
 
+
+
 var xScale = d3.scaleLinear()
           .range([0, w]),
-    yScale = d3.scaleBand()
-          .domain(ageBin)
+    yScale = d3.scaleLinear()
+          .domain([1000, 12000])
           .range([0, h]),
     colorScale = d3.scaleOrdinal()
           .domain(fullTaxonIDs)
@@ -917,6 +1046,7 @@ var expected = [];
 
     xScale.domain([0,stackSum]);
 
+
     var layer = svg.selectAll(".layer")
         .data(stacked)
         .enter()
@@ -949,10 +1079,81 @@ if(axis){
             
 }
 
-///legend section
+///////////////legend section////////////////////////////
+var legendW = 150,
+    legendH = 150;
+
+  xScale.range([50, 100]);
+  yScale.range([20, 145]);
+console.log(yScale(12000));
+
+///remove previous legend
+var legendContainer = d3.select("div#legend").select(".container").remove();
+                          
+  ///create legend
+var legendSvg = d3.select("div#legend")
+                      .append("div")
+                        .attr("class", "container")
+                    .append("svg")
+                      .attr("width", legendW)
+                      .attr("height", legendH);
+
+console.log(legendStackData);
+var stacked = formatFlagpole(legendStackData.time);
+console.log(stacked);
+
+var layer = legendSvg.selectAll(".layer")
+        .data(stacked)
+        .enter()
+        .append("g")
+          .attr("class", "layer");
+
+      layer.append("path")
+          .attr("class", "area")
+          .style("fill", function(d) {
+           return colorScale(d.key); 
+          })
+          .attr("d", area);
+
+
+if(axis){
+      //add axis
+      legendSvg.append("g")
+      .attr("class", "axis axis--x")
+      .attr("transform", "translate(" + 0 + "," + 20 + ")")
+      .call(d3.axisTop(xScale).ticks(2));
+
+      legendSvg.append("g")
+      .attr("class", "axis axis--y")
+      .attr("transform", "translate(" + 50 + "," + 0 + ")")
+      .call(d3.axisLeft(yScale).ticks(12));
+
+      legendSvg.selectAll(".axis")
+            .attr("opacity", .7);
+}
+
 
 }
 
+
+//////////////////////////////////////////////////////////////////
+//given site of data, loops through and creates values for each
+//currently setup to create optimal values for stacked legends
+function dummyData(site,max){
+  var time = site.time;
+  console.log(time);
+  for(period in time){
+      time[period]["totalValue"]=max;
+      for(taxa of fullTaxonIDs){
+          time[period][taxa]=Math.random()*max/fullTaxonIDs.length;
+      if(time[period][taxa]<max/fullTaxonIDs.length/4){
+        time[period][taxa]+=max/fullTaxonIDs.length/2;
+      }
+      }
+
+  }
+  return site;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // a simple function that rounds values.
