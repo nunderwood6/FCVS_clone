@@ -29,8 +29,14 @@ var allSiteData = [];
 var formattedData = [];
 var formattedData2 = [];
 var formattedData3 = [];
+
+//need comments here
 var legendData = [];
 var legendStackData;
+
+///set legend width and height
+var legendWidth = 200;
+var legendHeight = 200;
 
 // Layer group to add bar chart markers to. This is so we can easily access
 // and manipulate the icons for temporal/taxa changes.
@@ -59,6 +65,11 @@ var stackSum = 0;
   // #31A148 dark green
   // #B3D88A light green
   var colorArray = ["#4F77BB", '#A6CFE5', '#31A148', "#B3D88A","#7d4db7", "#b9a3e2"];
+
+//assign color based on taxa
+var colorScale = d3.scaleOrdinal()
+          .domain(fullTaxonIDs)
+          .range(colorArray);
 
 // using custom icon.
 var myIcon = L.icon({
@@ -142,8 +153,9 @@ $('#page').append(
 '<div id="slider-legend"><p id="legend-text">1-1000<br>YBP</p></div>'+
 '<div id="symbol_size"> <p>Symbol Size</p> <div id="symbol_slider"></div>'+
 '<div id="axis_toggle"> <h3>Axis</h3> <p class="on">On</p> <p>Off</p> </div>'+
-'<div id="legend"> <h5>Legend</h5> </div>'+
-'  </div'
+'<div id="legendHeader"> <h5>Legend</h5> </div>'+
+`<div id="legend" style="width: ${legendWidth}px; height: ${legendHeight}px;"> </div>`+
+' </div'
 
 );
 
@@ -224,6 +236,7 @@ $.ajax('Data/formattedData3.json', {
     // calling function to organize data
     formattedData = response;
     percentAbundance(formattedData);
+    findStackSum(formattedData);
     createPetalPlots(formattedData, 1000);
     //createSiteMarkers(formattedData);
     console.log(formattedData);
@@ -555,127 +568,148 @@ function createSiteMarkers(data) {
 
   }
 }
+/////////////////////////////////////////////////////////////////////
+function createPetalPlots(formattedData){
+
+////////////////////Legend//////////////////////////////
+///remove previous legend
+var legendContainer = d3.select("div#legend").select(".container").remove();
+
+  ///create legend
+var legendDiv = d3.select("div#legend")
+                      .append("div")
+                        .attr("class", "container");
+
+
+//////////////////////load svg////////////////////
+d3.xml("data/LeafIcon_final.svg").then(function(xml) {
+
+//append svg to legend div. Use vanilla JS, not D3
+legendDiv.node().appendChild(xml.documentElement);
+
+//select svg, set size, position so center bottom is at legend center
+var legendSvg = legendDiv.select("svg")
+                    .attr("width", legendWidth/2)
+                    .attr("height", legendHeight/2)
+                    .attr("overflow", "visible")
+                    .attr("tranform", `translate( ${legendWidth/4}, 0)`);
+
+//target original
+var original = legendSvg.select("#content");
+
+var bbox = original.node().getBBox();
+var x = bbox.x + bbox.width/2;
+var y = bbox.y + bbox.height;
+
+
+
+//////////////function for adding petals
+function makePetals(svg,data,legend){
+//////////////////clone original and generate petal for each taxa
+for(taxa of taxonIDs){
+var clone = original.node().cloneNode(true);
+var index = taxonIDs.indexOf(taxa);
+var value = Math.sqrt(data.time[activeYear][taxa]*100);
+
+console.log(name);
+//for all but first for legend, or all
+    if(legend == false || index != 0){
+    //add petal
+    svg.node().appendChild(clone);
+    }
+
+/*
+//find bottom center of original(based on viewbox, don't use div)
+//find center
+var bbox = svg.selectAll("#content").nodes()[0].getBBox();
+var x = bbox.x + bbox.width/2;
+var y = bbox.y + bbox.height;
+*/
+
+    //set class of each petal to taxa
+    var leafNodes = svg.selectAll("#content").nodes();
+      d3.select(leafNodes[index]).attr("class", `${taxa}`);
+
+    //bind legend data to leaf
+    var leaf = svg.select(`.${taxa}`);
+
+    var degree = 360/taxonIDs.length*index; //set angle based on #variables
+    var factor = value/stackSum/25;
+    ///scale and rotate around center
+    //to scale around center(x,y) by factor z, 
+    //translate(-x(z-1), -y(z-1)), scale(z)
+
+var translate = `translate(${-x*(factor-1)},
+                           ${-y*(factor-1)})`;
+var scale = `scale(${factor})`;
+var rotate = `rotate(${degree} ${x} ${y})`;
+
+leaf.attr("transform", translate+ scale + rotate);
+
+//set fill of petal
+var pathNode = leaf.selectAll("path").nodes()[0];
+
+d3.select(pathNode)
+  .style("fill", function(){
+    return colorScale(taxa);
+  });
+
+}
+}
+//call for legend
+console.log(legendSvg);
+makePetals(legendSvg,legendData, true);
+
+///////////////////petal symbols for map//////////////////////
+var w = 100*symbolFactor,
+    h = 100*symbolFactor;
+
+
+for(site of formattedData){
+if(site.time[activeYear]["totalValue"] != 0){
+
+var name = site["name"].replace(/ /g, "").replace("'", "").replace(".", "").replace(/,/g," ");
+
+//add div markers to map
+responsiveMarker(site);
+
+//size svg
+var svg = d3.select(`#${name}`)
+    .append("svg")
+      .attr("width", w)
+      .attr("height", h)
+      .attr("viewBox", "0 0 30 90")
+      .attr("overflow", "visible")
+      .attr("transform", "translate(" + ((-w/2)+6) + "," + (-h+6) + ")");
+
+makePetals(svg,site,false);
+
+
+}}
+
+
+
+
+
+
+
+
+
+});
+
+
+
+
+
+
+
+}
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// Add initial symbols (petal plots) based on data
-function createPetalPlots(data){
- 
-
-//for dynamic angle depending on # of variables displayed
-var angleDomain = [];
-for(i=0; i<taxonIDs.length;i++){
-  angleDomain.push(i);
-}
-
-var rotationScale = d3.scaleBand()
-                      .domain(angleDomain)
-                      .range([0,360]);
-
-//create petals for each site
-for(site of formattedData){
-  var period = site.time[activeYear];
-
-//loop through data for match of active taxa
-  for(var taxa of taxonIDs){
-  for(var variable in period){
-      if(taxa==variable){
-
-      var value = period[variable]*150;
-      var index = taxonIDs.indexOf(taxa);
-      var degrees = rotationScale(index);
-
-// defining custom icons for each petal. The icons and size can easily
-          // be changed. However, the ratios in the iconSize and iconAnchor need to remain
-          // the same. This ensures the icon is anchored to the correct lat lon
-          // no matter the size.
- var myIcon_dkblu = L.icon({
-              // #4F77BB dark blue
-              iconUrl:'lib/leaflet/images/LeafIcon_dkblu_lg.png',
-              iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
-              iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
-              popupAnchor: [1, -34],
-              tooltipAnchor: [16, -28],
-              });
-
-var myIcon_ltblu = L.icon({
-  // #A6CFE5 light blue
-  iconUrl:'lib/leaflet/images/LeafIcon_ltblu_lg.png',
-  iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
-  iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-  });
-
-var myIcon_dkgrn = L.icon({
-  // #31A148 dark green
-  iconUrl:'lib/leaflet/images/LeafIcon_dkgrn_lg.png',
-  iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
-  iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-  });
-
-var myIcon_ltgrn = L.icon({
-  // #B3D88A light green
-  iconUrl:'lib/leaflet/images/LeafIcon_ltgrn_lg.png',
-  iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
-  iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-  });
-
-var myIcon_dkpurp = L.icon({
-  // #B3D88A light green
-  iconUrl:'lib/leaflet/images/LeafIcon_dkpurp.png',
-  iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
-  iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-  });
-
-var myIcon_ltpurp = L.icon({
-  // #B3D88A light green
-  iconUrl:'lib/leaflet/images/LeafIcon_ltpurp.png',
-  iconSize: [(2*value*symbolFactor),(4*value*symbolFactor)],
-  iconAnchor:  [(1*value*symbolFactor),(4*value*symbolFactor)],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-  });
-
-      if(taxa == "Picea"){
-        var myIcon = myIcon_dkblu;
-      } else if(taxa == "Quercus"){      
-        var myIcon = myIcon_ltblu;
-      } else if(taxa == "Betula"){        
-        var myIcon = myIcon_dkgrn;
-      } else if(taxa == "Pinus"){       
-        var myIcon = myIcon_ltgrn;
-      } else if(taxa == "Ambrosia"){       
-        var myIcon = myIcon_dkpurp;
-      } else if(taxa == "Ulmus"){     
-        var myIcon = myIcon_ltpurp;
-      }
-
-// marker is customized to display information from the
-                  // site object.
-                  var marker = L.marker([site.latitude,site.longitude], {
-                    rotationAngle: degrees,
-                    icon:myIcon,
-                    name: site.name,
-                    siteID: site.siteID,
-                    legend: taxa
-                  });
-                  marker.addTo(petalPlotLayer);
-
-  }
-  }
-  }
-
-}
-};
-
-////////////////////////////////////////////////////////////////////////
 //// Should work for bar charts and radar charts.
 //Pass in site, bind data to div, return d3 reference to svg with default w/h.
 
@@ -684,7 +718,7 @@ function responsiveMarker(site) {
 //get site lat, long, name
       var lat = site["latitude"],
           long = site["longitude"],
-          name = site["name"].replace(/ /g, "").replace("'", "");
+          name = site["name"].replace(/ /g, "").replace("'", "").replace(".","").replace(",","");
 
   //create divIcon with site name id, add to map
       var siteIcon = L.divIcon({className: "div-icon", html: `<div id=${name} style="width: 40px; height: 40px;"> </div>`});
@@ -722,7 +756,6 @@ function findStackSum(formattedData) {
 
 ////////////////////////////////////////////////////////////////////////////////
 function createBarCharts(formattedData) {
-findStackSum(formattedData);
 
 //set chart dimensions
 var w = 25*symbolFactor,
@@ -737,13 +770,9 @@ var yScale = d3.scaleLinear()
                .domain([0, stackSum])
                .range([h, 0]);
 
-var colorScale = d3.scaleOrdinal()
-          .domain(fullTaxonIDs)
-          .range(colorArray);
-
 for(site of formattedData){
   var name = site["name"].replace(/ /g, "").replace("'", "");
-    if(site.time[activeYear] != 0){
+    if(site.time[activeYear]["totalValue"] != 0){
       //d3stack expects array of objects as input- here just one object
     var stacked = stack([site.time[activeYear]]);
     responsiveMarker(site);
@@ -752,7 +781,7 @@ for(site of formattedData){
         .append("svg")
           .attr("width", w)
           .attr("height", h)
-          .attr("transform", "translate(" + w*(-.5) + "," + (-1)*h + ")");
+          .attr("transform", "translate(" + ((-w/2)+6) + "," + (-h+6) + ")");
 
         svg.selectAll("g")
         .data(stacked)
@@ -966,7 +995,6 @@ RadarChart.draw("div.container", d, legendChartOptions);
 };
 /////////////////////////////////////////////////////////////////////////////////////
 function createFlagpole(formattedData) {
-findStackSum(formattedData);
 
 /////////////////////////
 var w = 20*symbolFactor,
@@ -987,10 +1015,7 @@ var xScale = d3.scaleLinear()
           .range([0, w]),
     yScale = d3.scaleLinear()
           .domain([1000, 12000])
-          .range([0, h]),
-    colorScale = d3.scaleOrdinal()
-          .domain(fullTaxonIDs)
-          .range(colorArray);
+          .range([0, h]);
 
 var area = d3.area()
     .x0(function(d) { 

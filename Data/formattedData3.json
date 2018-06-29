@@ -2900,7 +2900,7 @@
     }
   },
   {
-    "name": "Quallen Lake [Terhell Pond]",
+    "name": "Quallen Lake",
     "siteID": 2548,
     "latitude": 47.19324,
     "longitude": -95.786645,
@@ -11136,7 +11136,7 @@
     }
   },
   {
-    "name": "Lake Emily, Northeast Basin",
+    "name": "Lake Emily Northeast Basin",
     "siteID": 9875,
     "latitude": 44.313795,
     "longitude": -93.914375,
@@ -12760,7 +12760,7 @@
     }
   },
   {
-    "name": "Blocknic Lake [Horse Pond]",
+    "name": "Blocknic Lake",
     "siteID": 1076,
     "latitude": 47.181535,
     "longitude": -95.86866,
@@ -15312,7 +15312,7 @@
     }
   },
   {
-    "name": "Brown's Bay, Lake Minnetonka",
+    "name": "Brown's Bay Lake Minnetonka",
     "siteID": 307,
     "latitude": 44.95769,
     "longitude": -93.545105,
