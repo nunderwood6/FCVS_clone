@@ -1,7 +1,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////
-// commented out to make everything global
-//(function(){
+// wrap everything in function to prevent global variable conflicts
+function onLoad () {
+
 
 // array for the ages to be binned into.
 var ageBin = [];
@@ -11,53 +12,24 @@ var markers = [];
 var ageCounter = 0;
 // global variable used to store map object.
 var map;
-// array that holds the element IDs of taxon dropboxes.
-var boxArr =[];
-// array that holds values (pollen scientific names) of the taxon dropboxes.
-var taxonIDs;
-
+// array that holds string values (pollen scientific names) of the displayed variables(taxa). Change default here.
+var taxonIDs = [ "Picea", "Quercus","Betula", "Pinus"];
+//array with full list of all possible variables(taxa)
 var fullTaxonIDs = [ "Picea", "Quercus","Betula", "Pinus", "Ambrosia", "Ulmus"];
-// array that stores all called data in one place. Sorted by Taxa.
-var allTaxaData = [];
-// counter that sorts through data to store in allTaxaData.
-var dataCounter = 0;
-// array to put all raw data from calls; will contain arrays of data for particular taxa and particular time slices.
-var allRawData = [];
-// array that stores all data by site.
-var allSiteData = [];
-// final array of data in proper format
-var formattedData = [];
-var formattedData2 = [];
-var formattedData3 = [];
-
-//need comments here
-var legendData = [];
-var legendStackData;
-
-///set legend width and height
-var legendWidth = 200;
-var legendHeight = 200;
-
-// Layer group to add bar chart markers to. This is so we can easily access
-// and manipulate the icons for temporal/taxa changes.
-var barChartLayer = new L.LayerGroup();
-// Layer group to add petal plot markers to. This is so we can easily access
-// and manipulate the icons for temporal/taxa changes.
-var petalPlotLayer = new L.LayerGroup();
 // initial age of data shown.
 var age = [[0,1000]];
 // variable that holds name of active visualization. Petal is default.
 var activeViz = 'petal';
+//active year of displayed data
 var activeYear = 1000;
-
-//for symbol scaling
+//changed by slider, adjusts symbol size
 var symbolFactor = 1;
-
 //turn axis on and off
 var axis = true;
-
 //for stack symbol scaling
 var stackSum = 0;
+
+
 // an array with colors to stylize the bar charts. Add more colors for more
   // variables.
   // #4F77BB dark blue
@@ -71,14 +43,27 @@ var colorScale = d3.scaleOrdinal()
           .domain(fullTaxonIDs)
           .range(colorArray);
 
-// using custom icon.
-var myIcon = L.icon({
-  iconUrl:'lib/leaflet/images/LeafIcon_dkblu_lg.png',
-  iconSize: [20,40],
-  iconAnchor:  [10,40],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-  });
+//dummy data for legend
+var legendData = [];
+var legendStackData;
+///set legend width and height
+var legendWidth = 200;
+var legendHeight = 200;
+
+
+///////These variables used in functions for querying Neotoma database.////////
+// array that holds the element IDs of taxon dropboxes.
+var boxArr =[];
+// array that stores all called data in one place. Sorted by Taxa.
+var allTaxaData = [];
+// counter that sorts through data to store in allTaxaData.
+var dataCounter = 0;
+// array to put all raw data from calls; will contain arrays of data for particular taxa and particular time slices.
+var allRawData = [];
+// array that stores all data by site.
+var allSiteData = [];
+// final array of data in proper format
+var formattedData = [];
 
 // function that sets the whole thing in motion. Creates leaflet map
 function createMap(){
@@ -96,8 +81,6 @@ function createMap(){
         minZoom: 6
     });
 
-
-
     //add base tilelayer
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
       	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">Carto</a>',
@@ -106,8 +89,6 @@ function createMap(){
 
       // function used to create map controls.
         createControls(map);
-        petalPlotLayer.addTo(map);
-        barChartLayer.addTo(map);
 
         //window resize function so map takes up entirety of screen on resize
         $(window).on("resize", function () { $("#mapid").height($(window).height()); map.invalidateSize(); }).trigger("resize");
@@ -115,12 +96,7 @@ function createMap(){
 
 };
 
-
-
 /////////////////////////Taxa Dropdown Menu////////////////////////////////////
-
-// creates taxa dropdown to change taxa that is being displayed. Need to add option for more
-// and less taxa and a cap for the maximum amount you can have (probably around 6).
 
 function createControls(map){
 
@@ -136,18 +112,12 @@ $('#page').append(
     '</div>'+
 
   '<div class="control-label" style="border-radius:0px;">Taxa</div>'+
-  '<div class="control-dropdown on"id="Picea">Picea</div>'+
-  '<div class="control-dropdown on"id="Quercus">Quercus</div>'+
-  '<div class="control-dropdown on"id="Betula">Betula</div>'+
-  '<div class="control-dropdown on"id="Pinus">Pinus</div>'+
+  '<div class="control-dropdown"id="Picea">Picea</div>'+
+  '<div class="control-dropdown"id="Quercus">Quercus</div>'+
+  '<div class="control-dropdown"id="Betula">Betula</div>'+
+  '<div class="control-dropdown"id="Pinus">Pinus</div>'+
   '<div class="control-dropdown"id="Ambrosia">Ambrosia</div>'+
   '<div class="control-dropdown"id="Ulmus">Ulmus</div>'+
-'</div>'+
-'<div id="legend2">'+
-  '<img id="tax1" src="lib/leaflet/images/LeafIcon_dkblu_lg.png">'+
-  '<img id="tax2" src="lib/leaflet/images/LeafIcon_ltblu_lg.png">'+
-  '<img id="tax3" src="lib/leaflet/images/LeafIcon_dkgrn_lg.png">'+
-  '<img id="tax4" src="lib/leaflet/images/LeafIcon_ltgrn_lg.png">'+
 '</div>'+
 '<div id="slider-vertical" style="height:150px;"></div>'+
 '<div id="slider-legend"><p id="legend-text">1-1000<br>YBP</p></div>'+
@@ -159,19 +129,20 @@ $('#page').append(
 
 );
 
-// adding taxa to taxonIDs
-//taxonIDs = [ "Picea", "Quercus", "Betula", "Pinus"];
+//add class "active" to controls for default displayed variables
+for(taxa of taxonIDs){
+    d3.select(`.control-dropdown#${taxa}`).classed("on", true);
+}
 
-taxonIDs = [ "Picea", "Quercus","Betula", "Pinus"];
-
-// adding event listeners to the buttons to invoke vizChange when clicked
-document.getElementById ("petal").addEventListener ("click", vizChange, false);
-document.getElementById ("bar").addEventListener ("click", vizChange, false);
-document.getElementById ("radar").addEventListener ("click", vizChange, false);
-document.getElementById ("flagpole").addEventListener ("click", vizChange, false);
+// adding event listeners for changing visualization type
+d3.select("#petal").on("click", vizChange);
+d3.select("#bar").on("click", vizChange);
+d3.select("#radar").on("click", vizChange);
+d3.select("#flagpole").on("click", vizChange);
+//highlight active button
 changeActiveViz(activeViz);
 
-///add event listeners for taxa change////////////////////////
+///adding event listeners for adding and removing taxa
 d3.selectAll(".control-dropdown").on("click", function(){
 
       var div = d3.select(this);
@@ -181,25 +152,24 @@ d3.selectAll(".control-dropdown").on("click", function(){
 
       if((reachedMin == false) || (reachedMin ==true && taxaOff ==true) ){ //minimum 2 taxa
 
-    //change button appearance
-  taxaOff ? div.classed("on", true) : div.classed("on", false);
+          //change button appearance
+          taxaOff ? div.classed("on", true) : div.classed("on", false);
 
-    //add or remove from taxonIDs
-    if(taxaOff){
-      taxonIDs.push(taxa);
-    }else {
-    var index = taxonIDs.indexOf(taxa);
-    taxonIDs.splice(index, 1);
-    }
+          //add or remove from taxonIDs
+          if(taxaOff){
+            taxonIDs.push(taxa);
+          }else {
+          var index = taxonIDs.indexOf(taxa);
+          taxonIDs.splice(index, 1);
+          }
   }
-    vizChange(activeViz);
-   
+    vizChange(activeViz); 
 });
 //////////////////////////////////////////////////////////////
-//event listener for axis toggle
+//adding event listener for axis toggle
 d3.select("#axis_toggle").selectAll("p").on("click", axisToggle);
 
-//code block creating temporal slider control. Number ov steps based on years.
+//create temporal slider control. Number of steps based on years.
 $( function() {
     $( "#slider-vertical" ).slider({
       orientation: "vertical",
@@ -216,7 +186,6 @@ $( function() {
   } );
 
 //////////////////create size slider ///////////////////////
-
 $("#symbol_slider").slider({
   orientation:"horizontal",
   min: 0,
@@ -233,17 +202,16 @@ $("#symbol_slider").slider({
 $.ajax('Data/formattedData3.json', {
   dataType: "json",
   success: function(response){
-    // calling function to organize data
-    formattedData = response;
-    percentAbundance(formattedData);
-    findStackSum(formattedData);
-    createPetalPlots(formattedData, 1000);
-    //createSiteMarkers(formattedData);
-    console.log(formattedData);
+  // calling function to organize data
+  formattedData = response;
+  percentAbundance(formattedData);
+  findStackSum(formattedData);
+  createPetalPlots(formattedData, 1000);
+  //createSiteMarkers(formattedData);
+  console.log(formattedData);
   }
 });
-
-
+//load dummy legend data
 $.ajax("Data/legend.json", {
   dataType: "json",
   success: function(response){
@@ -255,11 +223,6 @@ $.get("Data/legendStack.json", function(response){
       console.log(response);
       legendStackData = response;
 });
-
-
-
-
-
 
 };
 
@@ -308,14 +271,7 @@ if(inActive){
   }
 
 }
-
-
-
-
-
 }
-
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // function used to call the neotoma database and retrieve the proper data based on a preset bounding box (which will eventually be user defined)
@@ -521,13 +477,13 @@ function formatData(data,ageArray,step) {
     }
 
     // pushes data into formattedData array to be used in visualizations
-     formattedData3.push(currentSite);
+     formattedData.push(currentSite);
 
   });
 
 
-        if (formattedData3.length == sitesFinal.length){
-        console.log(formattedData3);
+        if (formattedData.length == sitesFinal.length){
+        console.log(formattedData);
 
         //createPetalPlots(formattedData);
 
@@ -611,7 +567,6 @@ var clone = original.node().cloneNode(true);
 var index = taxonIDs.indexOf(taxa);
 var value = Math.sqrt(data.time[activeYear][taxa]*100);
 
-console.log(name);
 //for all but first for legend, or all
     if(legend == false || index != 0){
     //add petal
@@ -1140,7 +1095,6 @@ var layer = legendSvg.selectAll(".layer")
           })
           .attr("d", area);
 
-
 if(axis){
       //add axis
       legendSvg.append("g")
@@ -1156,7 +1110,6 @@ if(axis){
       legendSvg.selectAll(".axis")
             .attr("opacity", .7);
 }
-
 
 }
 
@@ -1196,26 +1149,23 @@ function vizChange(active){
     id=active;
   }
 
+  changeActiveViz(id);
   removeMarkers();
+
   if (id=='petal'){
     createPetalPlots(formattedData);
-    changeActiveViz(id);
   } else if (id=='bar'){
     createBarCharts(formattedData);
-    changeActiveViz(id);
   } else if (id=='radar'){
     createRadarCharts(formattedData);
-    changeActiveViz(id);
   } else if (id=='flagpole'){
     createFlagpole(formattedData);
-    changeActiveViz(id);
   };
 }
 ////////////////////////////////////////////////////////////////////////////////
 //function for removing existing visualizaitons from the map by clearing the panes
 function removeMarkers(){
   $('.leaflet-marker-pane').empty();
-  barChartLayer.clearLayers();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1237,26 +1187,19 @@ activeViz = viz;
 //////////////////////////////////////////////////////////////////////////////
 function symbolSize(ui) {
   symbolFactor = ui.value;
+  removeMarkers();
 
   if(activeViz == 'petal'){
-    removeMarkers();
     createPetalPlots(formattedData, );
   } else if(activeViz == 'bar'){
-    removeMarkers();
     createBarCharts(formattedData);
   } else if(activeViz == 'radar'){
-    removeMarkers();
     createRadarCharts(formattedData);
-  } else if(activeViz == 'flagpole'){
-    removeMarkers();
+  } else if(activeViz == 'flagpole'){ 
     createFlagpole(formattedData);
   }
 
-
-
 }
-
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // This function changes the visualization based on the time in the slider bar.
@@ -1284,22 +1227,17 @@ function tempChange(ui){
   var year = ageArray[yearSlot];
   activeYear = year;
 
-  
   var id = activeViz;
-  if(id != 'flagpole'){ removeMarkers(); }
+  if(id != 'flagpole') removeMarkers();
 
   if (id=='petal'){
     createPetalPlots(formattedData);
-    changeActiveViz(id);
   } else if (id=='bar'){
     createBarCharts(formattedData);
-    changeActiveViz(id);
   }else if (id=='radar'){
     createRadarCharts(formattedData);
-    changeActiveViz(id);
   }else if (id=='flapole'){
     createFlagpole(formattedData);
-    changeActiveViz(id);
   };
 
   var legend = document.getElementById("legend-text");
@@ -1307,6 +1245,12 @@ function tempChange(ui){
   legend.innerHTML= youngStep+"-"+year+"<br>YBP"
 
 }
-////////////////////////////////////////////////////////////////////////////////
 
-$(document).ready(createMap);
+createMap();
+
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+$(document).ready(onLoad);
+
+
