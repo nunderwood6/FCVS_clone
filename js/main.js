@@ -36,7 +36,7 @@ var stackSum = 0;
   // #A6CFE5 light blue
   // #31A148 dark green
   // #B3D88A light green
-  var colorArray = ["#4F77BB", '#A6CFE5', '#31A148', "#B3D88A","#7d4db7", "#b9a3e2"];
+  var colorArray = ["#4F77BB", '#A6CFE5', '#31A148', "#B3D88A", "#7d4db7", "#b9a3e2"];
 
 //assign color based on taxa
 var colorScale = d3.scaleOrdinal()
@@ -207,7 +207,7 @@ $.ajax('Data/formattedData3.json', {
   percentAbundance(formattedData);
   findStackSum(formattedData);
   createPetalPlots(formattedData, 1000);
-  //createSiteMarkers(formattedData);
+  createSiteMarkers(formattedData);
   console.log(formattedData);
   }
 });
@@ -241,8 +241,7 @@ function percentAbundance(formattedData) {
               }  
           }
   }
-  }
-  
+  } 
       return formattedData;
 }
 //////////////////////////////////////////////////////////////////////////
@@ -495,32 +494,21 @@ function formatData(data,ageArray,step) {
 
 ///////////////////////////////////////////////////////////////////////////
 //site markers
-function createSiteMarkers(data) {
+function createSiteMarkers(formattedData) {
 
-  console.log(data);
-  for(site of data){
-
-    var w = 10,
-        h = 10;
+  for(site of formattedData){
 
     var lat = site["latitude"],
         long = site["longitude"],
         name = site["name"].replace(/ /g, "").replace("'", "");
 
-      //create divIcon with site name id, add to map
-      var siteIcon = L.divIcon({className: "div-icon", html: `<div id=${name}> </div>`});
-      L.marker([lat, long], {icon: siteIcon}).addTo(map);
-
-      var svg = d3.select(`#${name}`)
-                  .append("svg")
-                    .attr("width", w)
-                    .attr("height", h);
-
-      svg.append("circle")
-            .attr("fill", "#000")
-            .attr("cx", w/2)
-            .attr("cy", h/2)
-            .attr("r", 2);
+       var circle = L.circleMarker([lat, long], {
+                    color: 'white',
+                    weight: '1',
+                    fillColor: 'black',
+                    fillOpacity: 1,
+                    radius: 2.5
+                }).addTo(map);
 
   }
 }
@@ -642,27 +630,10 @@ makePetals(svg,site,false);
 
 }}
 
-
-
-
-
-
-
-
-
 });
 
 
-
-
-
-
-
 }
-
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
 
 //// Should work for bar charts and radar charts.
@@ -707,8 +678,6 @@ function findStackSum(formattedData) {
     stackSum = sum;
 }
 //immediately call in ajax
-
-
 ////////////////////////////////////////////////////////////////////////////////
 function createBarCharts(formattedData) {
 
@@ -720,7 +689,6 @@ var w = 25*symbolFactor,
 var stack = d3.stack()
               .keys(taxonIDs);
 
-//scales
 var yScale = d3.scaleLinear()
                .domain([0, stackSum])
                .range([h, 0]);
@@ -829,11 +797,6 @@ var stacked = ([legendData.time[activeYear]]);
                       return (yScale(d[0]) - yScale(d[1])) ;
                 });
 */
-
-
-
-
-
 }
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -963,8 +926,6 @@ var ageStop = 12000;
 for(var i = ageStart; i <= ageStop; i+=ageStep) {
   ageBin.push(i);
 }
-
-
 
 var xScale = d3.scaleLinear()
           .range([0, w]),

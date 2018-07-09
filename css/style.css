@@ -262,6 +262,10 @@ div#legendHeader h5 {
   transform:rotate(90);
 }
 
+.leaflet-overlay-pane {
+  z-index: 800;
+}
+
 #mapid {
     width: 100%;
     min-width: 800px;
