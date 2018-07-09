@@ -538,7 +538,7 @@ var legendDiv = d3.select("div#legend")
 
 
 //////////////////////load svg////////////////////
-d3.xml("data/LeafIcon_final.svg").then(function(xml) {
+d3.xml("Data/LeafIcon_final.svg").then(function(xml) {
 
 //append svg to legend div. Use vanilla JS, not D3
 legendDiv.node().appendChild(xml.documentElement);
