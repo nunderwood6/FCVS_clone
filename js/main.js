@@ -28,15 +28,15 @@ var symbolFactor = 1;
 var axis = true;
 //for stack symbol scaling
 var stackSum = 0;
-
-
-// an array with colors to stylize the bar charts. Add more colors for more
-  // variables.
-  // #4F77BB dark blue
-  // #A6CFE5 light blue
-  // #31A148 dark green
-  // #B3D88A light green
-  var colorArray = ["#4F77BB", '#A6CFE5', '#31A148', "#B3D88A", "#7d4db7", "#b9a3e2"];
+//for variable styling
+var colorArray = ["#4F77BB", '#A6CFE5', '#31A148', "#B3D88A", "#7d4db7", "#b9a3e2"];
+//////////////////////load svg////////////////////
+var petalIcon;
+console.log(petalIcon);
+d3.xml("Data/LeafIcon_final.svg").then(function(xml) {
+    petalIcon = xml.documentElement; 
+    console.log(petalIcon);
+});
 
 //assign color based on taxa
 var colorScale = d3.scaleOrdinal()
@@ -47,9 +47,8 @@ var colorScale = d3.scaleOrdinal()
 var legendData = [];
 var legendStackData;
 ///set legend width and height
-var legendWidth = 200;
-var legendHeight = 200;
-
+var legendWidth = 185;
+var legendHeight = 225;
 
 ///////These variables used in functions for querying Neotoma database.////////
 // array that holds the element IDs of taxon dropboxes.
@@ -103,31 +102,49 @@ function createControls(map){
 // dynamically adding the legend to ensure defaults are consistent on reload.
 $('#page').append(
   '<div id="control-panel">'+
-  '<div class="control-label">Visualization</div>'+
-    '<div id="viz-control" class="control-buttons">'+
-    '<a href="#" id="petal"><img alt="Petal Plots" title="Petal Plots" class="control-icon" src="images/PetalPlotButton.png"></a>'+
-    '<a href="#" id="bar"><img alt="Stacked Bar Charts" title="Stacked Bar Charts" class="control-icon" src="images/BarChartButton.png"></a>'+
-    '<a href="#" id="radar"><img alt="Radar Charts" title="Radar Charts" class="control-icon" src="images/Radar_Plot.png"></a>'+
-    '<a href="#" id="flagpole"><img alt="Flagpole Charts" title="Flagpole Charts" class="control-icon" src="images/Flagpole_Diagram_Example.png"></a>'+
+    '<div class="control-label">Visualization</div>'+
+      '<div id="viz-control" class="control-buttons">'+
+      '<a href="#" id="petal"><img alt="Petal Plots" title="Petal Plots" class="control-icon" src="images/PetalPlotButton.png"></a>'+
+      '<a href="#" id="bar"><img alt="Stacked Bar Charts" title="Stacked Bar Charts" class="control-icon" src="images/BarChartButton.png"></a>'+
+      '<a href="#" id="radar"><img alt="Radar Charts" title="Radar Charts" class="control-icon" src="images/Radar_Plot.png"></a>'+
+      '<a href="#" id="flagpole"><img alt="Flagpole Charts" title="Flagpole Charts" class="control-icon" src="images/Flagpole_Diagram_Example.png"></a>'+
     '</div>'+
 
-  '<div class="control-label" style="border-radius:0px;">Taxa</div>'+
-  '<div class="control-dropdown"id="Picea">Picea</div>'+
-  '<div class="control-dropdown"id="Quercus">Quercus</div>'+
-  '<div class="control-dropdown"id="Betula">Betula</div>'+
-  '<div class="control-dropdown"id="Pinus">Pinus</div>'+
-  '<div class="control-dropdown"id="Ambrosia">Ambrosia</div>'+
-  '<div class="control-dropdown"id="Ulmus">Ulmus</div>'+
-'</div>'+
 '<div id="slider-vertical" style="height:150px;"></div>'+
 '<div id="slider-legend"><p id="legend-text">1-1000<br>YBP</p></div>'+
-'<div id="symbol_size"> <p>Symbol Size</p> <div id="symbol_slider"></div>'+
-'<div id="axis_toggle"> <h3>Axis</h3> <p class="on">On</p> <p>Off</p> </div>'+
-'<div id="legendHeader"> <h5>Legend</h5> </div>'+
-`<div id="legend" style="width: ${legendWidth}px; height: ${legendHeight}px;"> </div>`+
-' </div'
+'<div id="symbol-size-legend"> <p>Symbol<br>Size</p></div>'+
+    '<div id="symbol_slider"></div>'+    
 
+'<div class="axis" id="toggle"> <h3>Axis</h3> <p class="on">On</p> <p>Off</p> </div>'+
+'<div class="site_marker" id="toggle"> <h3>Sites</h3> <p class="on">On</p> <p>Off</p> </div>'+
+
+
+`<div id="legend" style="width: ${legendWidth}px; height: ${legendHeight}px;">`+
+    '<div id="legendHeader">'+ 
+        '<div class="control-dropdown"id="Picea">Picea</div>'+
+          '<div class="control-dropdown"id="Quercus">Quercus</div>'+
+          '<div class="control-dropdown"id="Betula">Betula</div>'+
+          '<div class="control-dropdown"id="Pinus">Pinus</div>'+
+          '<div class="control-dropdown"id="Ambrosia">Ambrosia</div>'+
+          '<div class="control-dropdown"id="Ulmus">Ulmus</div>'+
+        '</div>'+
+' </div'
 );
+
+//add color guide to legend
+for(taxa of fullTaxonIDs){
+    d3.select(`div.control-dropdown#${taxa}`)
+      .append("svg")
+        .attr("overflow", "visible")
+        .attr("width", 8)
+        .attr("height", 10)
+      .append("rect")
+        .attr("x", 2)
+        .attr("y", "2")
+        .attr("width", 8)
+        .attr("height", 8)
+        .attr("fill", colorScale(taxa));
+}
 
 //add class "active" to controls for default displayed variables
 for(taxa of taxonIDs){
@@ -143,31 +160,11 @@ d3.select("#flagpole").on("click", vizChange);
 changeActiveViz(activeViz);
 
 ///adding event listeners for adding and removing taxa
-d3.selectAll(".control-dropdown").on("click", function(){
+d3.selectAll(".control-dropdown").on("click", taxaChange);
 
-      var div = d3.select(this);
-      var taxa = div.attr("id");
-      var taxaOff = div.classed("on")==false;
-      var reachedMin = (taxonIDs.length == 2);
-
-      if((reachedMin == false) || (reachedMin ==true && taxaOff ==true) ){ //minimum 2 taxa
-
-          //change button appearance
-          taxaOff ? div.classed("on", true) : div.classed("on", false);
-
-          //add or remove from taxonIDs
-          if(taxaOff){
-            taxonIDs.push(taxa);
-          }else {
-          var index = taxonIDs.indexOf(taxa);
-          taxonIDs.splice(index, 1);
-          }
-  }
-    vizChange(activeViz); 
-});
 //////////////////////////////////////////////////////////////
 //adding event listener for axis toggle
-d3.select("#axis_toggle").selectAll("p").on("click", axisToggle);
+d3.select(".axis#toggle").selectAll("p").on("click", axisToggle);
 
 //create temporal slider control. Number of steps based on years.
 $( function() {
@@ -187,7 +184,7 @@ $( function() {
 
 //////////////////create size slider ///////////////////////
 $("#symbol_slider").slider({
-  orientation:"horizontal",
+  orientation:"vertical",
   min: 0,
   max: 5,
   value: 1,
@@ -244,34 +241,31 @@ function percentAbundance(formattedData) {
   } 
       return formattedData;
 }
-//////////////////////////////////////////////////////////////////////////
-function axisToggle() {
 
-var p = $(this);
-var text = p.text();
-var inActive = p.hasClass("on") == false;
-var sib = p.siblings();
+////////////////////////////////////////////////////////////////////////////////
+///finds highest combined percent abundance at one site across taxa
+function findStackSum(formattedData) {
+      var sum = 0;
+  for(site of formattedData){
 
-if(inActive){
-  //change button appearance
-  p.addClass("on");
-  sib.removeClass("on");
+      var timeObject = site.time;
 
-  //change axis state
-  if(text == "On"){
-    axis = true;
-  } else {
-    axis = false;
+      for(time in timeObject){
+
+          var timeSum = 0;
+          var period = timeObject[time];
+
+          for(taxa of fullTaxonIDs){
+                if(period["totalValue"]!=0){
+              timeSum = timeSum + period[taxa];
+                }
+          }
+          sum = Math.max(sum,timeSum);
+          
+      }
   }
-
-  //redraw if radar or flapole are active
-  if(activeViz == "radar" || "flagpole"){
-    vizChange(activeViz);
-  }
-
+    stackSum = sum;
 }
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // function used to call the neotoma database and retrieve the proper data based on a preset bounding box (which will eventually be user defined)
 // and the preselected taxon names from boxArr
@@ -492,6 +486,8 @@ function formatData(data,ageArray,step) {
 
 };
 
+////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 //site markers
 function createSiteMarkers(formattedData) {
@@ -500,21 +496,37 @@ function createSiteMarkers(formattedData) {
 
     var lat = site["latitude"],
         long = site["longitude"],
-        name = site["name"].replace(/ /g, "").replace("'", "");
+        name = comp(site["name"]);
 
        var circle = L.circleMarker([lat, long], {
                     color: 'white',
                     weight: '1',
-                    fillColor: 'black',
+                    fillColor: '#666',
                     fillOpacity: 1,
                     radius: 2.5
                 }).addTo(map);
 
   }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+//creates leaflet div marker with id of site name. use id to target, then append svg
+function responsiveMarker(site) {
+
+//get site lat, long, name
+      var lat = site["latitude"],
+          long = site["longitude"],
+          name = comp(site["name"]);
+
+  //create divIcon with site name id, add to map
+      var siteIcon = L.divIcon({className: "div-icon", html: `<div id=${name} style="width: 40px; height: 40px;"> </div>`});
+      L.marker([lat, long], {icon: siteIcon}).addTo(map);
+   
+     
+}
 /////////////////////////////////////////////////////////////////////
 function createPetalPlots(formattedData){
-
+console.log(petalIcon);
 ////////////////////Legend//////////////////////////////
 ///remove previous legend
 var legendContainer = d3.select("div#legend").select(".container").remove();
@@ -524,30 +536,27 @@ var legendDiv = d3.select("div#legend")
                       .append("div")
                         .attr("class", "container");
 
-
-//////////////////////load svg////////////////////
-d3.xml("Data/LeafIcon_final.svg").then(function(xml) {
-
 //append svg to legend div. Use vanilla JS, not D3
-legendDiv.node().appendChild(xml.documentElement);
+legendDiv.node().appendChild(petalIcon);
+console.log(petalIcon);
 
 //select svg, set size, position so center bottom is at legend center
 var legendSvg = legendDiv.select("svg")
-                    .attr("width", legendWidth/2)
-                    .attr("height", legendHeight/2)
+                    .attr("width", 50)
+                    .attr("height", 50)
                     .attr("overflow", "visible")
-                    .attr("tranform", `translate( ${legendWidth/4}, 0)`);
+                    .attr("transform", `translate(75,35)`);
 
-//target original
+//manually add g element with id content within svg so d3 can select
 var original = legendSvg.select("#content");
 
+//find bottom center of original(based on svg viewbox, don't use div box)
 var bbox = original.node().getBBox();
 var x = bbox.x + bbox.width/2;
 var y = bbox.y + bbox.height;
+//console.log(bbox);
 
-
-
-//////////////function for adding petals
+//////////////call for each site, pass in target svg, 
 function makePetals(svg,data,legend){
 //////////////////clone original and generate petal for each taxa
 for(taxa of taxonIDs){
@@ -555,32 +564,28 @@ var clone = original.node().cloneNode(true);
 var index = taxonIDs.indexOf(taxa);
 var value = Math.sqrt(data.time[activeYear][taxa]*100);
 
+    if(legend){
+      value*=2.8;
+    }
+
 //for all but first for legend, or all
     if(legend == false || index != 0){
     //add petal
     svg.node().appendChild(clone);
     }
 
-/*
-//find bottom center of original(based on viewbox, don't use div)
-//find center
-var bbox = svg.selectAll("#content").nodes()[0].getBBox();
-var x = bbox.x + bbox.width/2;
-var y = bbox.y + bbox.height;
-*/
+//set class of each petal to taxa
+var leafNodes = svg.selectAll("#content").nodes();
+  d3.select(leafNodes[index]).attr("class", `${taxa}`);
 
-    //set class of each petal to taxa
-    var leafNodes = svg.selectAll("#content").nodes();
-      d3.select(leafNodes[index]).attr("class", `${taxa}`);
+//target current petal
+var leaf = svg.select(`.${taxa}`);
 
-    //bind legend data to leaf
-    var leaf = svg.select(`.${taxa}`);
-
-    var degree = 360/taxonIDs.length*index; //set angle based on #variables
-    var factor = value/stackSum/25;
-    ///scale and rotate around center
-    //to scale around center(x,y) by factor z, 
-    //translate(-x(z-1), -y(z-1)), scale(z)
+var degree = 360/taxonIDs.length*index; //set angle based on #variables
+var factor = value/stackSum/25;//size based on value, current symbol size. 25 was an arbitrary aesthetic choice
+///scale and rotate around center
+//to scale around center(x,y) by factor z, 
+//translate(-x(z-1), -y(z-1)), scale(z)
 
 var translate = `translate(${-x*(factor-1)},
                            ${-y*(factor-1)})`;
@@ -599,19 +604,18 @@ d3.select(pathNode)
 
 }
 }
+////////////////////////
 //call for legend
-console.log(legendSvg);
 makePetals(legendSvg,legendData, true);
 
 ///////////////////petal symbols for map//////////////////////
 var w = 100*symbolFactor,
     h = 100*symbolFactor;
 
-
 for(site of formattedData){
 if(site.time[activeYear]["totalValue"] != 0){
 
-var name = site["name"].replace(/ /g, "").replace("'", "").replace(".", "").replace(/,/g," ");
+var name = comp(site["name"]);
 
 //add div markers to map
 responsiveMarker(site);
@@ -621,63 +625,16 @@ var svg = d3.select(`#${name}`)
     .append("svg")
       .attr("width", w)
       .attr("height", h)
-      .attr("viewBox", "0 0 30 90")
+      .attr("viewBox", "0 0 30 90")//must use same viewbox as original svg symbol
       .attr("overflow", "visible")
       .attr("transform", "translate(" + ((-w/2)+6) + "," + (-h+6) + ")");
 
 makePetals(svg,site,false);
 
-
 }}
-
-});
-
-
+console.log(petalIcon);
 }
-////////////////////////////////////////////////////////////////////////////////
-
-//// Should work for bar charts and radar charts.
-//Pass in site, bind data to div, return d3 reference to svg with default w/h.
-
-function responsiveMarker(site) {
-
-//get site lat, long, name
-      var lat = site["latitude"],
-          long = site["longitude"],
-          name = site["name"].replace(/ /g, "").replace("'", "").replace(".","").replace(",","");
-
-  //create divIcon with site name id, add to map
-      var siteIcon = L.divIcon({className: "div-icon", html: `<div id=${name} style="width: 40px; height: 40px;"> </div>`});
-      L.marker([lat, long], {icon: siteIcon}).addTo(map);
-   
-     
-}
-
-////////////////////////////////////////////////////////////////////////////////
-///finds highest combined percent abundance at one site across taxa
-function findStackSum(formattedData) {
-      var sum = 0;
-  for(site of formattedData){
-
-      var timeObject = site.time;
-
-      for(time in timeObject){
-
-          var timeSum = 0;
-          var period = timeObject[time];
-
-          for(taxa of fullTaxonIDs){
-                if(period["totalValue"]!=0){
-              timeSum = timeSum + period[taxa];
-                }
-          }
-          sum = Math.max(sum,timeSum);
-          
-      }
-  }
-    stackSum = sum;
-}
-//immediately call in ajax
+//////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 function createBarCharts(formattedData) {
 
@@ -694,7 +651,7 @@ var yScale = d3.scaleLinear()
                .range([h, 0]);
 
 for(site of formattedData){
-  var name = site["name"].replace(/ /g, "").replace("'", "");
+  var name = comp(site["name"]);
     if(site.time[activeYear]["totalValue"] != 0){
       //d3stack expects array of objects as input- here just one object
     var stacked = stack([site.time[activeYear]]);
@@ -704,8 +661,9 @@ for(site of formattedData){
         .append("svg")
           .attr("width", w)
           .attr("height", h)
-          .attr("transform", "translate(" + ((-w/2)+6) + "," + (-h+6) + ")");
+          .attr("transform", "translate(" + ((-w/2)+6) + "," + (-h+6) + ")");//center base at site
 
+//
         svg.selectAll("g")
         .data(stacked)
         .enter()
@@ -740,7 +698,8 @@ var legendSvg = d3.select("div#legend")
                         .attr("class", "container")
                     .append("svg")
                       .attr("width", legendW)
-                      .attr("height", legendH);
+                      .attr("height", legendH)
+                      .attr("transform", `translate(${legendW/4}, 0)`);
 
 
 for(taxa of taxonIDs){
@@ -769,34 +728,6 @@ for(taxa of taxonIDs){
               });
 
 }
-
-
-///alternative use legend data(would need to calculate new stackSum or create
-//rectangle specific data)
-
- /*                     
-var stacked = ([legendData.time[activeYear]]);
-
-    legendSvg.selectAll("g")
-              .data(stacked)
-              .enter()
-              .append("g")
-              .attr("fill", function(d) {
-                 return colorScale(d.key); 
-                })
-              .selectAll("rect")
-              .data(function(d){return d;})
-              .enter()
-              .append("rect")
-                .attr("x", legendW/2)
-                .attr("y", function(d){
-                      return yScale(d[1]);
-                })
-                .attr("width", 50)//half of total height
-                .attr("height", function(d){
-                      return (yScale(d[0]) - yScale(d[1])) ;
-                });
-*/
 }
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -862,7 +793,7 @@ var formatRadar = function(site) {
       //get site lat, long, name
       var lat = site["latitude"],
           long = site["longitude"],
-          name = site["name"].replace(/ /g, "").replace("'", "");
+          name = comp(site["name"]);
 
       //create divIcon with site name id, add to map
       var siteIcon = L.divIcon({className: "div-icon", html: `<div id=${name}> </div>`});
@@ -892,7 +823,7 @@ var legendChartOptions = {
   ExtraWidthX: 50,
   ExtraWidthY: 50,
   TranslateX: 0,
-  TranslateY: 5,
+  TranslateY: 0,
   gTranslateX: 20,
   gTranslateY: 22,
   radius: 1,
@@ -903,10 +834,7 @@ var legendChartOptions = {
   drawLabels: true
 };
 
-
-console.log(legendData);
 var d = formatRadar(legendData);
-console.log(d);
 
 RadarChart.draw("div.container", d, legendChartOptions);
 
@@ -948,14 +876,11 @@ var stack = d3.stack()
     .keys(taxonIDs);
 
 /////////////////change to expected flagpole format////////////////////////
-
+//array of objects with variables as properties
 var formatFlagpole = function(site) {
 var expected = [];  
-  for(var time in site){
-    
-    var obj = {};
-      var total = site[time]["totalValue"];
-      obj["total"]= total;
+  for(var time in site){   
+      var obj = {};
       obj["time"]= parseFloat(time);
 
      for(taxa of taxonIDs){
@@ -972,10 +897,10 @@ var expected = [];
 ///create leaflet div marker for each site, append svg to each
   for(site of formattedData){
 
-    name = site["name"].replace(/ /g, "").replace("'", "");
-    maxVal = 0;
+   name = comp(site["name"]);
+   maxVal = 0;
       
-      responsiveMarker(site)
+   responsiveMarker(site)
 
    var svg = d3.select(`#${name}`)
           .append("svg")
@@ -994,13 +919,12 @@ var expected = [];
         .append("g")
           .attr("class", "layer");
 
-      layer.append("path")
-          .attr("class", "area")
-          .style("fill", function(d) {
-           return colorScale(d.key); 
-          })
-          .attr("d", area);
-
+     layer.append("path")
+        .attr("class", "area")
+        .style("fill", function(d) {
+         return colorScale(d.key); 
+        })
+        .attr("d", area);
 
 if(axis){
       //add axis
@@ -1016,8 +940,7 @@ if(axis){
 
       d3.selectAll(".axis")
             .attr("opacity", .2)
-}
-            
+}           
 }
 
 ///////////////legend section////////////////////////////
@@ -1037,11 +960,11 @@ var legendSvg = d3.select("div#legend")
                         .attr("class", "container")
                     .append("svg")
                       .attr("width", legendW)
-                      .attr("height", legendH);
+                      .attr("height", legendH)
+                      .attr("transform", `translate(${legendW/4}, 0)`);
+                      
 
-console.log(legendStackData);
 var stacked = formatFlagpole(legendStackData.time);
-console.log(stacked);
 
 var layer = legendSvg.selectAll(".layer")
         .data(stacked)
@@ -1073,8 +996,6 @@ if(axis){
 }
 
 }
-
-
 //////////////////////////////////////////////////////////////////
 //given site of data, loops through and creates values for each
 //currently setup to create optimal values for stacked legends
@@ -1092,6 +1013,11 @@ function dummyData(site,max){
 
   }
   return site;
+}
+//////////////////////////////////////////////////////////////////////////////
+//utility function to compress strings
+function comp(string) {
+return string.replace(/ /g, "").replace("'", "").replace(".","").replace(",","");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1143,6 +1069,57 @@ var activeButton = document.getElementById(viz).children[0];
 activeButton.style = "box-shadow: 0px 2px 3px #262626; opacity: 1.0;"
 activeViz = viz;
  //activeButton.style = "opacity: 1.0;"
+}
+/////////////////////////////////////////////////////////////////////////////
+function taxaChange (){
+  //this refers to div button clicked
+      var div = d3.select(this);
+      var taxa = div.attr("id");
+      var taxaOff = div.classed("on")==false;
+      var reachedMin = (taxonIDs.length == 2);
+
+      if((reachedMin == false) || (reachedMin ==true && taxaOff ==true) ){ //minimum 2 taxa
+
+          //change button appearance
+          taxaOff ? div.classed("on", true) : div.classed("on", false);
+
+          //add or remove from taxonIDs
+          if(taxaOff){
+            taxonIDs.push(taxa);
+          }else {
+          var index = taxonIDs.indexOf(taxa);
+          taxonIDs.splice(index, 1);
+          }
+  }
+      vizChange(activeViz); 
+}
+
+//////////////////////////////////////////////////////////////////////////
+function axisToggle() {
+
+var p = $(this);
+var text = p.text();
+var inActive = p.hasClass("on") == false;
+var sib = p.siblings();
+
+if(inActive){
+  //change button appearance
+  p.addClass("on");
+  sib.removeClass("on");
+
+  //change axis state
+  if(text == "On"){
+    axis = true;
+  } else {
+    axis = false;
+  }
+
+  //redraw if radar or flapole are active
+  if(activeViz == "radar" || "flagpole"){
+    vizChange(activeViz);
+  }
+
+}
 }
 
 //////////////////////////////////////////////////////////////////////////////

@@ -1,7 +1,6 @@
 
 
 body {
-
   margin: 0px;
   padding: 0px;
 }
@@ -16,38 +15,40 @@ a:hover .control-icon{
 
 }
 
-#symbol_size {
-  margin: 10px;
-  right:0px;
-  top: 480px;
-  border-radius: 3px;
-  width: 150px;
+#symbol-size-legend {
+  height: 32px;
+  width: 60px;
   position: fixed;
-  z-index: 2000;
+  right: 10px;
+  top: 390px;
   background-color:#e9e9e9;
   box-shadow: 0px 2px 4px 0px #a6a6a6;
+  z-index: 2000;
+  border-radius: 3px;
+  font-size: 14px;
   text-align: center;
-  height: 50px;
 }
 
-#symbol_size > p {
-  margin: 0 0 10px 0;
+#symbol-size-legend > p {
+  margin: 0;
 }
 
 #symbol_slider {
-  width: 140px;
-  height: 10px;
-  margin: 0 auto;
+   z-index: 2000;
+  position:fixed;
+  right: 40px;
+  top: 440px;
+  height: 150px;
+  background: #e9e9e9;
 
 }
 
-
-
 #control-panel {
-  margin: 10px;
-  right:0px;
+  margin: 0px;
+  top: 2px;
+  right:55px;
   border-radius: 3px;
-  width: 150px;
+  width: 130px;
   position: fixed;
   z-index: 2000;
   background-color:#e9e9e9;
@@ -60,30 +61,34 @@ label{
 
 .control-dropdown {
   padding: 5px 0px 5px 0px;
-  width: 100%;
-  text-align: center;
+  width: 31.1%;
+  margin: 1px;
+  height: 10px;
 	border:1px solid #bfbfbf;
 	display:inline-block;
-	cursor:pointer;
+  cursor:pointer;
 	color:#666666;
-	font-family:Arial;
-	font-size:13px;
+	font-size:11px;
 	font-weight:bold;
 	text-decoration:none;
 	text-shadow:0px 1px 0px #ffffff;
   background-color:#e9e9e9;
-  text-align-last:center;
-  height: 10px;
+  text-align: left;
+  opacity: .7;
+}
 
+.control-dropdown:hover {
+  opacity: 1;
 }
 
 .control-dropdown.on {
-  border:1px solid #555;
-
+  opacity: 1;
+  box-shadow: rgb(38, 38, 38) 0px 2px 3px;
 }
 
 
-.control-label{
+div.control-label{
+  font-family: 'Lato';
   border-radius: 3px 3px 0px 0px;
   width: 100%;
   color: white;
@@ -113,7 +118,9 @@ label{
   box-shadow: 0px 1px 2px #a6a6a6;
 }
 
-
+div.container {
+    height: 170px;
+}
 
 #legend2{
   background-color: none;
@@ -123,60 +130,24 @@ select{
   text-align-last:center;
 }
 
-#tax1 {
-  display: inline;
-  height:26px;
-  width:auto;
-  position:fixed;
-  right:135px;
-  top: 188px;
-  z-index: 3000;
-}
-#tax2 {
-  display:inline;
-  height:26px;
-  width:auto;
-  position:fixed;
-  right:135px;
-  top: 210px;
-  z-index: 3000;
-}
-#tax3 {
-  display: inline;
-  height:26px;
-  width:auto;
-  position:fixed;
-  right:135px;
-  top: 232px;
-  z-index: 3000;
-}
-#tax4 {
-  display: inline;
-  height:26px;
-  width:auto;
-  position:fixed;
-  right:135px;
-  top: 254px;
-  z-index: 3000;
-}
-
 #slider-vertical{
   z-index: 2000;
   position:fixed;
-  right: 25px;
-  top: 330px;
+  right: 100px;
+  top: 440px;
 }
 
 #slider-legend {
-  height: 50px;
-  width: 100px;
+  height: 32px;
+  width: 75px;
   position: fixed;
-  right: 60px;
-  top: 330px;
+  right: 80px;
+  top: 390px;
   background-color:#e9e9e9;
   box-shadow: 0px 2px 4px 0px #a6a6a6;
   z-index: 2000;
   border-radius: 3px;
+  font-size: 14px;
 }
 
 #legend-text {
@@ -186,38 +157,54 @@ select{
   margin: 0 auto;
 }
 
-div#axis_toggle {
-  width: 100px;
+div.site_marker#toggle {
+  width: 45px;
   position: fixed;
-  right: 30px;
-  top: 550px;
+  right: 5px;
+  top: 75px;
   background-color:#e9e9e9;
   box-shadow: 0px 2px 4px 0px #a6a6a6;
   z-index: 2000;
   border-radius: 3px;
+  text-align: center;
+  box-shadow: 0px 2px 4px 0px #a6a6a6;
 }
 
-div#axis_toggle h3 {
+div.axis#toggle {
+  width: 45px;
+  position: fixed;
+  right: 5px;
+  top: 2px;
+  background-color:#e9e9e9;
+  box-shadow: 0px 2px 4px 0px #a6a6a6;
+  z-index: 2000;
+  border-radius: 3px;
+  text-align: center;
+  box-shadow: 0px 2px 4px 0px #a6a6a6;
+}
+
+div#toggle h3 {
   font-weight: normal;
-  font-size: 20px;
+  font-size: 18px;
   margin: 0px;
 }
 
-div#axis_toggle p {
+div#toggle p {
   border: 1px solid #888;
-  margin: 5px;
+  margin: 3px;
   border-radius: 3px;
-  font-size: 16px;
+  font-size: 14px;
+  cursor: pointer;
 }
 
-div#axis_toggle p.on {
-  border: 3px solid #555;
+div#toggle p.on {
+  box-shadow: rgb(38, 38, 38) 0px 2px 3px;
 }
 
 div#legend {
   position: fixed;
-  left: 10px;
-  bottom: 10px;
+  right: 5px;
+  top: 155px;
   background-color:#e9e9e9;
   box-shadow: 0px 2px 4px 0px #a6a6a6;
   z-index: 2000;
@@ -226,14 +213,11 @@ div#legend {
 }
 
 div#legendHeader {
-  width: 200px;
-  height: 25px;
-  position: fixed;
-  left: 10px;
-  bottom: 210px;
-  margin: 5px;
+  width: 185px;
+  height: 50px;
+   margin: 5px;
   background-color:#e9e9e9;
-  z-index: 2000;
+  z-index: 2500;
   border-radius: 3px;
   margin: 0;
 }
