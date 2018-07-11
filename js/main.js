@@ -31,11 +31,10 @@ var stackSum = 0;
 //for variable styling
 var colorArray = ["#4F77BB", '#A6CFE5', '#31A148', "#B3D88A", "#7d4db7", "#b9a3e2"];
 //////////////////////load svg////////////////////
-var petalIcon;
-console.log(petalIcon);
+var svgText;
 d3.xml("Data/LeafIcon_final.svg").then(function(xml) {
-    petalIcon = xml.documentElement; 
-    console.log(petalIcon);
+  //store as string
+    svgText = new XMLSerializer().serializeToString(xml.documentElement);
 });
 
 //assign color based on taxa
@@ -63,7 +62,7 @@ var allRawData = [];
 var allSiteData = [];
 // final array of data in proper format
 var formattedData = [];
-
+var circleLayer;
 // function that sets the whole thing in motion. Creates leaflet map
 function createMap(){
     // set map bounds
@@ -79,6 +78,8 @@ function createMap(){
         maxBoundsViscosity:0.8,
         minZoom: 6
     });
+
+    circleLayer = L.layerGroup();
 
     //add base tilelayer
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
@@ -163,9 +164,10 @@ changeActiveViz(activeViz);
 d3.selectAll(".control-dropdown").on("click", taxaChange);
 
 //////////////////////////////////////////////////////////////
-//adding event listener for axis toggle
-d3.select(".axis#toggle").selectAll("p").on("click", axisToggle);
+//adding event listener for axis and site marker toggles
+d3.select(".axis#toggle").selectAll("p").on("click", buttonToggle);
 
+d3.select(".site_marker#toggle").selectAll("p").on("click", buttonToggle);
 //create temporal slider control. Number of steps based on years.
 $( function() {
     $( "#slider-vertical" ).slider({
@@ -203,7 +205,7 @@ $.ajax('Data/formattedData3.json', {
   formattedData = response;
   percentAbundance(formattedData);
   findStackSum(formattedData);
-  createPetalPlots(formattedData, 1000);
+  createPetalPlots(formattedData, true);
   createSiteMarkers(formattedData);
   console.log(formattedData);
   }
@@ -217,7 +219,6 @@ $.ajax("Data/legend.json", {
 });
 
 $.get("Data/legendStack.json", function(response){
-      console.log(response);
       legendStackData = response;
 });
 
@@ -491,6 +492,7 @@ function formatData(data,ageArray,step) {
 ///////////////////////////////////////////////////////////////////////////
 //site markers
 function createSiteMarkers(formattedData) {
+console.log("here");
 
   for(site of formattedData){
 
@@ -504,9 +506,10 @@ function createSiteMarkers(formattedData) {
                     fillColor: '#666',
                     fillOpacity: 1,
                     radius: 2.5
-                }).addTo(map);
-
+                });
+       circleLayer.addLayer(circle);
   }
+       circleLayer.addTo(map);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -520,26 +523,20 @@ function responsiveMarker(site) {
 
   //create divIcon with site name id, add to map
       var siteIcon = L.divIcon({className: "div-icon", html: `<div id=${name} style="width: 40px; height: 40px;"> </div>`});
-      L.marker([lat, long], {icon: siteIcon}).addTo(map);
-   
-     
+      L.marker([lat, long], {icon: siteIcon}).addTo(map);    
 }
 /////////////////////////////////////////////////////////////////////
-function createPetalPlots(formattedData){
-console.log(petalIcon);
+function createPetalPlots(formattedData, first){
 ////////////////////Legend//////////////////////////////
 ///remove previous legend
 var legendContainer = d3.select("div#legend").select(".container").remove();
-
   ///create legend
 var legendDiv = d3.select("div#legend")
                       .append("div")
                         .attr("class", "container");
 
 //append svg to legend div. Use vanilla JS, not D3
-legendDiv.node().appendChild(petalIcon);
-console.log(petalIcon);
-
+legendDiv.html(svgText);
 //select svg, set size, position so center bottom is at legend center
 var legendSvg = legendDiv.select("svg")
                     .attr("width", 50)
@@ -549,7 +546,6 @@ var legendSvg = legendDiv.select("svg")
 
 //manually add g element with id content within svg so d3 can select
 var original = legendSvg.select("#content");
-
 //find bottom center of original(based on svg viewbox, don't use div box)
 var bbox = original.node().getBBox();
 var x = bbox.x + bbox.width/2;
@@ -558,15 +554,15 @@ var y = bbox.y + bbox.height;
 
 //////////////call for each site, pass in target svg, 
 function makePetals(svg,data,legend){
+
 //////////////////clone original and generate petal for each taxa
 for(taxa of taxonIDs){
 var clone = original.node().cloneNode(true);
 var index = taxonIDs.indexOf(taxa);
 var value = Math.sqrt(data.time[activeYear][taxa]*100);
-
     if(legend){
       value*=2.8;
-    }
+    }  
 
 //for all but first for legend, or all
     if(legend == false || index != 0){
@@ -632,7 +628,7 @@ var svg = d3.select(`#${name}`)
 makePetals(svg,site,false);
 
 }}
-console.log(petalIcon);
+
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -1095,31 +1091,46 @@ function taxaChange (){
 }
 
 //////////////////////////////////////////////////////////////////////////
-function axisToggle() {
+function buttonToggle() {
 
 var p = $(this);
 var text = p.text();
 var inActive = p.hasClass("on") == false;
 var sib = p.siblings();
+var par = d3.select(this.parentNode).attr("class");
+console.log(par);
+console.log(text);
 
 if(inActive){
-  //change button appearance
-  p.addClass("on");
-  sib.removeClass("on");
+    //change button appearance
+    p.addClass("on");
+    sib.removeClass("on");
 
-  //change axis state
-  if(text == "On"){
-    axis = true;
-  } else {
-    axis = false;
-  }
+    if(par == "axis"){
+      //change axis state
+      if(text == "On"){
+        axis = true;
+      } else {
+        axis = false;
+      }
 
-  //redraw if radar or flapole are active
-  if(activeViz == "radar" || "flagpole"){
-    vizChange(activeViz);
-  }
+      //redraw if radar or flapole are active
+      if(activeViz == "radar" || "flagpole"){
+        vizChange(activeViz);
+      }
+
+
+    } else if(par == "site_marker"){
+          if(text == "On"){
+          createSiteMarkers(formattedData);
+        } else if(text == "Off"){
+          map.removeLayer(circleLayer);
+        }
+
+    }
 
 }
+
 }
 
 //////////////////////////////////////////////////////////////////////////////
