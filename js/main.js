@@ -35,6 +35,7 @@ var svgText;
 d3.xml("Data/LeafIcon_final.svg").then(function(xml) {
   //store as string
     svgText = new XMLSerializer().serializeToString(xml.documentElement);
+    console.log("Petal loaded");
 });
 
 //assign color based on taxa
@@ -195,34 +196,6 @@ $("#symbol_slider").slider({
     symbolSize(ui);
   }
 });
-
-/////////////////////////////////////////
-// calls a local version of the formatted output from the getSites, formatData functions.
-$.ajax('Data/formattedData3.json', {
-  dataType: "json",
-  success: function(response){
-  // calling function to organize data
-  formattedData = response;
-  percentAbundance(formattedData);
-  findStackSum(formattedData);
-  createPetalPlots(formattedData, true);
-  createSiteMarkers(formattedData);
-  console.log(formattedData);
-  }
-});
-//load dummy legend data
-$.ajax("Data/legend.json", {
-  dataType: "json",
-  success: function(response){
-    legendData = response[0];
-  }
-});
-
-$.get("Data/legendStack.json", function(response){
-      legendStackData = response;
-});
-
-};
 
 /////////////////////////////////////converts pollen from raw counts to % abundance
 function percentAbundance(formattedData) {
@@ -1196,6 +1169,34 @@ function tempChange(ui){
 }
 
 createMap();
+
+/////////////////////////////////////////
+// calls a local version of the formatted output from the getSites, formatData functions.
+$.ajax('Data/formattedData3.json', {
+  dataType: "json",
+  success: function(response){
+  // calling function to organize data
+  formattedData = response;
+  percentAbundance(formattedData);
+  findStackSum(formattedData);
+  createPetalPlots(formattedData, true);
+  createSiteMarkers(formattedData);
+  console.log(formattedData);
+  }
+});
+//load dummy legend data
+$.ajax("Data/legend.json", {
+  dataType: "json",
+  success: function(response){
+    legendData = response[0];
+  }
+});
+
+$.get("Data/legendStack.json", function(response){
+      legendStackData = response;
+});
+
+};
 
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
