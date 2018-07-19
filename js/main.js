@@ -919,7 +919,6 @@ var legendW = 150,
 
   xScale.range([50, 100]);
   yScale.range([20, 145]);
-console.log(yScale(12000));
 
 ///remove previous legend
 var legendContainer = d3.select("div#legend").select(".container").remove();
@@ -1180,8 +1179,10 @@ $.ajax('Data/formattedData3.json', {
   formattedData = response;
   percentAbundance(formattedData);
   findStackSum(formattedData);
-  createPetalPlots(formattedData, true);
   createSiteMarkers(formattedData);
+setTimeout(function(){
+    createPetalPlots(formattedData, true);                
+}, 50);
   console.log(formattedData);
   }
 });
