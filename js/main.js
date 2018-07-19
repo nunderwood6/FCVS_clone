@@ -197,6 +197,7 @@ $("#symbol_slider").slider({
   }
 });
 
+}
 /////////////////////////////////////converts pollen from raw counts to % abundance
 function percentAbundance(formattedData) {
 
@@ -1198,7 +1199,6 @@ $.get("Data/legendStack.json", function(response){
 
 };
 
-}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 $(document).ready(onLoad);
