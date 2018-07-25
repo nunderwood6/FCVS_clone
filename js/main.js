@@ -3,7 +3,6 @@
 // wrap everything in function to prevent global variable conflicts
 function onLoad () {
 
-
 // array for the ages to be binned into.
 var ageBin = [];
 // array for markers to be placed into and removed from. May need to be outside this function.
@@ -476,10 +475,10 @@ console.log("here");
 
        var circle = L.circleMarker([lat, long], {
                     color: 'white',
-                    weight: '1',
+                    weight: '.75',
                     fillColor: '#666',
                     fillOpacity: 1,
-                    radius: 2.5
+                    radius: 2
                 });
        circleLayer.addLayer(circle);
   }
