@@ -28,7 +28,7 @@ The library's code base includes methods for user-defined querying of the Neotom
 * [Radar Charts](#radar-chart)
 * [Flagpole Diagrams](#flagpole-diagram)
 
-These visualizations were chosen after conducting a quantitative content analysis on all the visualizations from papers in the [Neotoma Citations Google Scholar page](https://scholar.google.com/citations?user=idoixqkAAAAJ&hl=en). The analysis provided insight into extant visualization methods in the field of paleoecology and informed selection of the particular examples included in the suite. The visualizations are created using [D3](https://github.com/d3/d3),  and [Leaflet](http://leafletjs.com/).
+These visualizations were chosen after conducting a quantitative content analysis on all the visualizations from papers in the [Neotoma Citations Google Scholar page](https://scholar.google.com/citations?user=idoixqkAAAAJ&hl=en). The analysis provided insight into extant visualization methods in the field of paleoecology and informed selection of the particular examples included in the suite. All the  visualizations were implemented using [D3](https://github.com/d3/d3), and [Leaflet](http://leafletjs.com/).
 
 #### Petal Plot
 
@@ -48,7 +48,7 @@ A **stacked bar chart** depicts proportionally sized bars on top of each other. 
 
 <img align="left" height=150px width=auto src="images/readme_radar.png">
 
-A **radar chart** (otherwise known as a star plot) has a polygon with *n* vertices along equi-angular axes, where *n* is the number of variables in the data shown. Each vertex and axis correspond to a single variable. The distance a particular vertex is displaced along the axis from the center of the chart is proportional to the value for that particular variable. Each chart is centered at the latitude and longitude of the site. The radar chart was not prevalent in the Neotoma citation analysis, but is another suitable multivariate visualization technique for mobile interfaces, as it can depict a lot of information in a concise space.
+A **radar chart** (otherwise known as a star plot) has a polygon with *n* vertices along equi-angular axes, where *n* is the number of variables in the data shown. Each vertex and axis correspond to a single variable. The distance a particular vertex is displaced along the axis from the center of the chart is proportional to the value for that particular variable. Each chart is centered at the latitude and longitude of the site. The radar chart was not prevalent in the Neotoma citation analysis, but is another suitable multivariate visualization technique for mobile interfaces, as it can depict a lot of information in a concise space. The radar chart design is adapted from implementations by [Alvaro Graves](https://github.com/alangrafu/radar-chart-d3) and [Nadieh Bremer](https://gist.github.com/nbremer/6506614).
 
  
 #### Flagpole Diagram
@@ -67,10 +67,10 @@ The petal plots, stacked bar charts, and radar charts are not inherently tempora
 
 FCVS's interface allows users to choose between the four primary design types, and optimize the visualizations with several controls.
 
-**Variable Display:** All of the visualization types support visualization of 2-6 user defined variables. The default is four.
+**Responsive Variable Display:** All of the visualization types support visualization of 2-6 user defined variables. The default is four.
 
 **Symbol Size:** Depending on the area of interest, users may optimize readability by toggling the symbol size.
 
-**Site Markers** Users may toggle site markers on and off. The default is to display site markers because symbol anchors vary by visualization type.
+**Site Markers:** Users may toggle site markers on and off. The default is to display site markers because symbol anchors vary by visualization type.
 
-**Axis** Radar and flagpole chart designs include axes to aid with comparison, but may be toggled on and off.
+**Axes:** Radar and flagpole chart designs include axes to aid with comparison, but may be toggled on and off.
