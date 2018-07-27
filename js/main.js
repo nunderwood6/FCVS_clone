@@ -534,7 +534,7 @@ var clone = original.node().cloneNode(true);
 var index = taxonIDs.indexOf(taxa);
 var value = Math.sqrt(data.time[activeYear][taxa]*100);
     if(legend){
-      value*=2.8;
+      value=Math.sqrt(data.time[2000][taxa]*100)*2.8;
     }  
 
 //for all but first for legend, or all
@@ -720,10 +720,12 @@ var radarChartOptions = {
   drawLabels: false
 };
 
-
-///////////convert formattedData to radar data.(array within array) Specific to simple radar here
-var formatRadar = function(site) {
+///////////convert formattedData to radar data(array of objects within array) Specific to simple radar here
+var formatRadar = function(site,legend) {
   var age = site.time[activeYear];
+  if(legend){
+    age = site.time[2000];
+  }
 
   var radarData = [];
   var radarPoly = [];
@@ -803,7 +805,8 @@ var legendChartOptions = {
   drawLabels: true
 };
 
-var d = formatRadar(legendData);
+var d = formatRadar(legendData,true);
+console.log(d);
 
 RadarChart.draw("div.container", d, legendChartOptions);
 
