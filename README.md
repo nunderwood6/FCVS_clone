@@ -16,6 +16,7 @@ The FCVS utilizes the [Neotoma Database](https://www.neotomadb.org/) to bring va
 
 More information on the Neotoma database can be found [here](https://www.neotomadb.org/about/category/database).
 
+
 ### Where?
 The library's code base includes methods for user-defined querying of the Neotoma database, including variable specification, geographical area of interest, and time period. Currently this functionality is not integrated into the interface, but was used to call the current dataset, which includes relative abundances of six pollen taxa in Minnesota over the past twelve millenia. 
 
@@ -58,7 +59,7 @@ A **flagpole diagram** is a stacked area chart that is rotated 90 degrees, depic
 
 ### When?
 
-The samples in the database are not only spread across space, but as time as well. The data is binned by a defined time interval. The user can explore the timeline of the database through a slider bar. As the slider is shifted, the visualizations change according to the value of the preset taxa for that time period.
+Geoscientific data is temporal as well as spatial. FCVS bins data from the Neotoma database by a defined time interval. The user can explore the timeline of the database through a slider bar. As the slider is shifted, the visualizations change according to the value of the preset taxa for that time period.
 
 The petal plots, stacked bar charts, and radar charts are not inherently temporal visualizations. Interactivity via the sliding bar control allows for these visualizations to display information over time. The flagpole diagram, as mentioned, is the only inherently temporal visualization in the suite, displaying data across time without interactivity.
 
