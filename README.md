@@ -52,7 +52,7 @@ A **radar chart** (otherwise known as a star plot) has a polygon with *n* vertic
 
 <img align="left" height=150px width=auto src="images/readme_flagpole.png">
 
-A **flagpole diagram** is a stacked area chart that is rotated 90 degrees, depicting time on the y-axis and value on the x-axis. The base of the graph is centered at the latitude and longitude of the site. It uses color and size to encode nominal and numerical data, respectively. Area charts of all kinds were quite popular in the Neotoma citation analysis. While flagpole diagrams are not entirely mobile-friendly, they allow for good comparison of multivariate data. The flagpole diagram is the purest temporal visualization included in the suite.
+A **flagpole diagram** is a stacked area chart that is rotated 90 degrees, depicting time on the y-axis and value on the x-axis. The top of the graph is centered at the latitude and longitude of the site. It uses color and area to encode nominal and numerical data, respectively. Area charts of all kinds were quite popular in the Neotoma citation analysis. While flagpole diagrams are not entirely mobile-friendly, they allow for good comparison of multivariate data, and are the purest spatio-temporal visualization included in the suite.
 
 ### When?
 
@@ -60,8 +60,14 @@ The samples in the database are not only spread across space, but as time as wel
 
 The petal plots, stacked bar charts, and radar charts are not inherently temporal visualizations. Interactivity via the sliding bar control allows for these visualizations to display information over time. The flagpole diagram, as mentioned, is the only inherently temporal visualization in the suite, displaying data across time without interactivity.
 
-## Example
+## Flexible Interface
 
-The following gif shows a possible interaction with the FCVS.
+FCVS's interface allows users to choose between the four primary design types, and optimize the visualizations with several controls.
 
-*GIF depicting possible interaction*
+**Variable Display:** All of the visualization types support visualization of 2-6 user defined variables. The default is four.
+
+**Symbol Size:** Depending on the area of interest, users may optimize readability by toggling the symbol size.
+
+**Site Markers** Users may toggle site markers on and off. The default is to display site markers because symbol anchors vary by visualization type.
+
+**Axis** Radar and flagpole chart designs include axes to aid with comparison, but may be toggled on and off.
