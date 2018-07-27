@@ -12,7 +12,9 @@ This repository contains the **Flyover Country Visualization Suite (FCVS)**, a m
 
 <img align="left"  src="images/Neotoma.png">
 
-The FCVS utilizes the [Neotoma Database](https://www.neotomadb.org/) to bring vast multivariate, temporal paleoecological datasets into a concise mobile interface. The interface offers a robust set of interactions, allowing users to  visualize 2-6 pollen taxa over space and time with one of four visualization types. More information on the Neotoma database can be found [here](https://www.neotomadb.org/about/category/database).
+The FCVS utilizes the [Neotoma Database](https://www.neotomadb.org/) to bring vast multivariate, temporal paleoecological datasets into a concise mobile interface. The interface offers a robust set of interactions, allowing users to  visualize 2-6 pollen taxa over space and time with four visualization types.
+
+More information on the Neotoma database can be found [here](https://www.neotomadb.org/about/category/database).
 
 ### Where?
 The library's code base includes methods for user-defined querying of the Neotoma database, including variable specification, geographical area of interest, and time period. Currently this functionality is not integrated into the interface, but was used to call the current dataset, which includes relative abundances of six pollen taxa in Minnesota over the past twelve millenia. 
