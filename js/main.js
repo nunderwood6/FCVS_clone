@@ -108,7 +108,7 @@ $('#page').append(
       '<a href="#" id="petal"><img alt="Petal Plots" title="Petal Plots" class="control-icon" src="images/PetalPlotButton.png"></a>'+
       '<a href="#" id="bar"><img alt="Stacked Bar Charts" title="Stacked Bar Charts" class="control-icon" src="images/BarChartButton.png"></a>'+
       '<a href="#" id="radar"><img alt="Radar Charts" title="Radar Charts" class="control-icon" src="images/Radar_Plot.png"></a>'+
-      '<a href="#" id="flagpole"><img alt="Flagpole Charts" title="Flagpole Charts" class="control-icon" src="images/Flagpole_Diagram_Example.png"></a>'+
+      '<a href="#" id="flagpole"><img alt="Flagpole Charts" title="Flagpole Charts" class="control-icon" src="images/readme_flagpole.png"></a>'+
     '</div>'+
 
 '<div id="slider-vertical" style="height:150px;"></div>'+
